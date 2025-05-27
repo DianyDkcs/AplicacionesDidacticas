@@ -1,3 +1,5 @@
+# Generar un archivo HTML con React, Tailwind y QRCode.js embebido
+html_code = '''
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,11 +18,13 @@
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
   <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- App Code -->
   <script type="text/babel">
 
 // Juego de Estadística Profesional - Flujo Completo
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
 // Utilidades
 function generateSessionCode() {
@@ -117,14 +121,22 @@ function App() {
   const [newAdminPass, setNewAdminPass] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
   const [nameError, setNameError] = useState(false);
+  const qrRef = useRef(null);
 
-  useEffect(() => {
-    saveData(data);
-  }, [data]);
+  useEffect(() => { saveData(data); }, [data]);
+  useEffect(() => { document.body.style.background = theme === "dark" ? "#222" : "#f5f5f5"; }, [theme]);
 
+  // QR dinámico
   useEffect(() => {
-    document.body.style.background = theme === "dark" ? "#222" : "#f5f5f5";
-  }, [theme]);
+    if (view === "admin" && sessionCode && qrRef.current && window.QRCode) {
+      qrRef.current.innerHTML = "";
+      new window.QRCode(qrRef.current, {
+        text: window.location.href.split('?')[0] + '?session=' + sessionCode,
+        width: 128,
+        height: 128
+      });
+    }
+  }, [view, sessionCode]);
 
   useEffect(() => {
     try {
@@ -423,11 +435,9 @@ function App() {
                 <li>Los estudiantes deben ingresar como "Estudiante" y usar el código</li>
               </ol>
               <div className="mt-3 p-2 bg-white border rounded text-center">
-                <div className="text-xs mb-1">Código QR (ilustrativo)</div>
-                <div className="w-32 h-32 mx-auto bg-gray-200 flex items-center justify-center">
-                  <div className="text-3xl">QR</div>
-                </div>
-                <div className="text-xs mt-1">En una implementación real, aquí aparecería un código QR escaneble</div>
+                <div className="text-xs mb-1">Código QR</div>
+                <div ref={qrRef} className="mx-auto"></div>
+                <div className="text-xs mt-1">Escanea para unirte como estudiante</div>
               </div>
             </div>
           )}
@@ -583,3 +593,9 @@ ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
 </html>
+'''
+
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(html_code)
+
+print('index.html generado')
