@@ -97,7 +97,7 @@ function App() {
   const [confetti, setConfetti] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newAdminPass, setNewAdminPass] = useState("");
-  const [showQR, setShowQR] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Sincronización localStorage
   useEffect(() => {
@@ -107,6 +107,20 @@ function App() {
   useEffect(() => {
     document.body.style.background = theme === "dark" ? "#222" : "#f5f5f5";
   }, [theme]);
+
+  // Autollenar código de sesión desde la URL
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const session = params.get('session');
+      if (session) {
+        setSessionCode(session.toUpperCase());
+        setRole("student");
+      }
+    } catch (e) {
+      console.error("Error al leer parámetros de URL:", e);
+    }
+  }, []);
 
   // --- LOGIN ---
   function handleLogin() {
@@ -140,15 +154,56 @@ function App() {
     };
     setData(d => ({ ...d, sessions: { ...d.sessions, [code]: session }, lastSession: code }));
     setSessionCode(code);
-    setShowQR(true);
   }
 
   function handleEndSession() {
     if (!sessionCode) return;
+    
+    // Marcar la sesión como finalizada
     setData(d => {
       const s = { ...d.sessions[sessionCode], finished: true };
       return { ...d, sessions: { ...d.sessions, [sessionCode]: s } };
     });
+    
+    // Volver a la pantalla de login
+    setSessionCode("");
+    setView("login");
+  }
+
+  // Función para copiar el código de sesión
+  function copySessionCode() {
+    if (!sessionCode) return;
+    
+    // Usar el API de portapapeles si está disponible
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(sessionCode)
+        .then(() => {
+          setCopySuccess(true);
+          setTimeout(() => setCopySuccess(false), 2000);
+        })
+        .catch(err => {
+          console.error('Error al copiar: ', err);
+          alert("No se pudo copiar el código. Cópialo manualmente: " + sessionCode);
+        });
+    } else {
+      // Fallback para navegadores que no soportan clipboard API
+      const textArea = document.createElement("textarea");
+      textArea.value = sessionCode;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      } catch (err) {
+        console.error('Error al copiar: ', err);
+        alert("No se pudo copiar el código. Cópialo manualmente: " + sessionCode);
+      }
+      
+      document.body.removeChild(textArea);
+    }
   }
 
   // --- STUDENT ---
@@ -247,20 +302,6 @@ function App() {
     }
   }
 
-  // --- QR GENERATION ---
-  function QRCode({ value }) {
-    const ref = React.useRef();
-    useEffect(() => {
-      if (!window.qrcode) return;
-      ref.current.innerHTML = "";
-      const qr = window.qrcode(0, 'M');
-      qr.addData(value);
-      qr.make();
-      ref.current.innerHTML = qr.createImgTag(4);
-    }, [value]);
-    return <div ref={ref} />;
-  }
-
   // --- RENDER ---
   return (
     <div className={theme === "dark" ? "bg-gray-900 text-white min-h-screen" : "min-h-screen"}>
@@ -293,16 +334,61 @@ function App() {
       {view === "admin" && (
         <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow">
           <h2 className="text-xl font-bold mb-2">Panel de Administrador</h2>
-          <div className="mb-2">Código de sesión: <span className="font-mono text-lg">{sessionCode || "-"}</span></div>
-          <button className="bg-green-600 text-white p-2 rounded mr-2" onClick={handleStartSession}>Iniciar juego</button>
-          <button className="bg-red-600 text-white p-2 rounded" onClick={handleEndSession}>Finalizar sesión</button>
-          {sessionCode && showQR && (
-            <div className="mt-4">
-              <h3 className="font-bold">Código QR para estudiantes</h3>
-              <QRCode value={window.location.href.split('?')[0] + '?session=' + sessionCode} />
-              <div className="text-xs mt-2">Escanea o comparte este código para unirse a la sesión.</div>
+          
+          {/* Código de sesión con botón de copiar */}
+          {sessionCode ? (
+            <div className="mb-4 p-3 bg-gray-100 rounded flex items-center justify-between">
+              <div>
+                <div className="text-sm text-gray-600">Código de sesión:</div>
+                <div className="font-mono text-lg font-bold">{sessionCode}</div>
+              </div>
+              <button 
+                className={`px-3 py-1 rounded text-white ${copySuccess ? 'bg-green-600' : 'bg-blue-600'}`}
+                onClick={copySessionCode}
+              >
+                {copySuccess ? '¡Copiado!' : 'Copiar'}
+              </button>
+            </div>
+          ) : (
+            <div className="mb-4">No hay sesión activa</div>
+          )}
+          
+          <div className="flex mb-4">
+            <button className="bg-green-600 text-white p-2 rounded mr-2" onClick={handleStartSession}>
+              {sessionCode ? 'Nueva sesión' : 'Iniciar juego'}
+            </button>
+            {sessionCode && (
+              <button className="bg-red-600 text-white p-2 rounded" onClick={handleEndSession}>
+                Finalizar sesión
+              </button>
+            )}
+          </div>
+          
+          {/* Instrucciones para compartir */}
+          {sessionCode && (
+            <div className="mb-4 p-3 bg-blue-50 rounded text-sm">
+              <p className="font-bold">Compartir con estudiantes:</p>
+              <ol className="list-decimal ml-5 mt-1">
+                <li>Comparte el código: <strong>{sessionCode}</strong></li>
+                <li>O comparte este enlace:
+                  <div className="font-mono bg-white p-1 mt-1 text-xs break-all border rounded">
+                    {window.location.href.split('?')[0]}?session={sessionCode}
+                  </div>
+                </li>
+                <li>Los estudiantes deben ingresar como "Estudiante" y usar el código</li>
+              </ol>
+              
+              {/* QR Code simulado */}
+              <div className="mt-3 p-2 bg-white border rounded text-center">
+                <div className="text-xs mb-1">Código QR (ilustrativo)</div>
+                <div className="w-32 h-32 mx-auto bg-gray-200 flex items-center justify-center">
+                  <div className="text-3xl">QR</div>
+                </div>
+                <div className="text-xs mt-1">En una implementación real, aquí aparecería un código QR escaneble</div>
+              </div>
             </div>
           )}
+          
           <div className="mt-4">
             <h3 className="font-bold">Equipos</h3>
             <div className="grid grid-cols-2 gap-2">
