@@ -1,353 +1,632 @@
-<!DOCTYPE html>
+# Actualizar el código con los 5 equipos solicitados
+
+html_content = '''<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Juego de Estadística - Equipos</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; margin: 0; }
-    .container { max-width: 700px; margin: 30px auto; background: #fff; border-radius: 10px; box-shadow: 0 0 15px #0001; padding: 30px; }
-    h1, h2, h3 { text-align: center; color: #2c3e50; }
-    .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin: 20px 0; }
-    .team-card { background: #eaf2f8; border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 2px 5px #0001; }
-    .team-name { font-weight: bold; margin-bottom: 10px; }
-    .btn { padding: 10px 20px; background: #3498db; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin: 5px 0; }
-    .btn[disabled] { background: #aaa; cursor: not-allowed; }
-    .hidden { display: none; }
-    .result-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    .result-table th, .result-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    .result-table th { background: #3498db; color: #fff; }
-    .result-table tr.winner { background: #2ecc71; color: #fff; font-weight: bold; }
-    .admin-panel { text-align: center; margin-bottom: 20px; }
-    .user-panel { text-align: center; margin-bottom: 20px; }
-    .question-box { background: #f9f9f9; border-radius: 8px; padding: 20px; margin: 20px 0; }
-    .option-btn { display: block; width: 100%; margin: 8px 0; padding: 10px; border-radius: 5px; border: 1px solid #3498db; background: #fff; cursor: pointer; }
-    .option-btn.selected { background: #3498db; color: #fff; }
-    .option-btn[disabled] { background: #eee; color: #aaa; cursor: not-allowed; }
-    .summary { text-align: center; margin: 20px 0; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Estadística - Modo Competencia</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <!-- QR Code Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .login-container, .admin-panel, .team-selection, .game-container, .results-container {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #eaf2f8;
+            border-radius: 5px;
+        }
+        .options {
+            margin-top: 10px;
+        }
+        .option {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #d4e6f1;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .option:hover {
+            background-color: #a9cce3;
+        }
+        .selected {
+            background-color: #3498db;
+            color: white;
+        }
+        .correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .incorrect {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .progress {
+            margin-top: 20px;
+            height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .explanation {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9e79f;
+            border-radius: 5px;
+            display: none;
+        }
+        .image-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .image-container img {
+            max-width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .team-card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .team-card.selected-team {
+            border: 3px solid #3498db;
+        }
+        .team-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .team-score {
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+        .admin-controls {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eaf2f8;
+            border-radius: 5px;
+        }
+        .team-progress {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            background-color: #f5f5f5;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-content {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        .leaderboard {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .leaderboard th, .leaderboard td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .leaderboard th {
+            background-color: #3498db;
+            color: white;
+        }
+        .leaderboard tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .leaderboard tr:hover {
+            background-color: #e5e5e5;
+        }
+        .results-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .results-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .team-results {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .team-result-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .team-position {
+            font-size: 24px;
+            font-weight: bold;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .team-position.first {
+            background-color: gold;
+            color: #333;
+        }
+        .team-position.second {
+            background-color: silver;
+            color: #333;
+        }
+        .team-position.third {
+            background-color: #cd7f32;
+            color: white;
+        }
+        .team-result-name {
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .team-result-score {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: confetti-fall 5s ease-in-out infinite;
+            z-index: 1000;
+        }
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Juego de Estadística - Equipos</h1>
-    <div id="login-section">
-      <h2>Ingresa al juego</h2>
-      <div style="text-align:center;">
-        <label>
-          <input type="radio" name="role" value="user" checked> Participante
-        </label>
-        <label style="margin-left:20px;">
-          <input type="radio" name="role" value="admin"> Propietario/Admin
-        </label>
-      </div>
-      <div id="user-login" class="user-panel">
-        <input id="user-name" type="text" placeholder="Tu nombre o apodo" style="margin:10px 0; padding:8px; width:80%;">
-        <button class="btn" onclick="loginUser()">Entrar</button>
-      </div>
-      <div id="admin-login" class="admin-panel hidden">
-        <input id="admin-pass" type="password" placeholder="Contraseña admin" style="margin:10px 0; padding:8px; width:80%;">
-        <button class="btn" onclick="loginAdmin()">Entrar como Admin</button>
-      </div>
+    <div class="container">
+        <h1>Juego de Estadística para Veterinaria y Zootecnia</h1>
+        
+        <!-- Pantalla de inicio de sesión -->
+        <div id="login-container" class="login-container active">
+            <h2>Iniciar Sesión</h2>
+            <div class="input-group">
+                <label for="user-type">Seleccione su rol:</label>
+                <select id="user-type">
+                    <option value="admin">Administrador</option>
+                    <option value="student">Estudiante</option>
+                </select>
+            </div>
+            <div id="admin-login-fields">
+                <div class="input-group">
+                    <label for="admin-email">Correo electrónico:</label>
+                    <input type="email" id="admin-email" placeholder="admin@ejemplo.com">
+                </div>
+                <div class="input-group">
+                    <label for="admin-password">Contraseña:</label>
+                    <input type="password" id="admin-password" placeholder="********">
+                </div>
+            </div>
+            <div id="student-login-fields" style="display: none;">
+                <p>Escanea el código QR proporcionado por tu profesor o ingresa el código de la sesión:</p>
+                <div class="input-group">
+                    <label for="session-code">Código de sesión:</label>
+                    <input type="text" id="session-code" placeholder="Ingresa el código de 6 dígitos">
+                </div>
+            </div>
+            <div class="buttons">
+                <button id="login-btn">Ingresar</button>
+            </div>
+        </div>
+        
+        <!-- Panel de administrador -->
+        <div id="admin-panel" class="admin-panel">
+            <h2>Panel de Administrador</h2>
+            
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab="session-tab">Sesión</button>
+                    <button class="tab-button" data-tab="teams-tab">Equipos</button>
+                    <button class="tab-button" data-tab="progress-tab">Progreso</button>
+                    <button class="tab-button" data-tab="results-tab">Resultados</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- Pestaña de Sesión -->
+                    <div id="session-tab" class="tab-panel active">
+                        <h3>Información de la Sesión</h3>
+                        <div class="session-info">
+                            <p>Código de sesión: <span id="session-id">Generando...</span></p>
+                            <div class="qr-container">
+                                <h4>Código QR para acceso de estudiantes</h4>
+                                <div id="qrcode"></div>
+                                <p>Los estudiantes pueden escanear este código QR o ingresar el código de sesión manualmente.</p>
+                            </div>
+                            <div class="admin-controls">
+                                <h4>Controles de Sesión</h4>
+                                <button id="start-session-btn">Iniciar Sesión</button>
+                                <button id="pause-session-btn">Pausar Sesión</button>
+                                <button id="end-session-btn">Finalizar Sesión</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pestaña de Equipos -->
+                    <div id="teams-tab" class="tab-panel">
+                        <h3>Equipos Participantes</h3>
+                        <div id="teams-list" class="team-grid">
+                            <!-- Los equipos se cargarán dinámicamente aquí -->
+                        </div>
+                    </div>
+                    
+                    <!-- Pestaña de Progreso -->
+                    <div id="progress-tab" class="tab-panel">
+                        <h3>Progreso de los Equipos</h3>
+                        <div id="teams-progress">
+                            <!-- El progreso de los equipos se cargará dinámicamente aquí -->
+                        </div>
+                    </div>
+                    
+                    <!-- Pestaña de Resultados -->
+                    <div id="results-tab" class="tab-panel">
+                        <h3>Tabla de Clasificación</h3>
+                        <table class="leaderboard">
+                            <thead>
+                                <tr>
+                                    <th>Posición</th>
+                                    <th>Equipo</th>
+                                    <th>Preguntas Respondidas</th>
+                                    <th>Respuestas Correctas</th>
+                                    <th>Puntuación</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body">
+                                <!-- Los resultados se cargarán dinámicamente aquí -->
+                            </tbody>
+                        </table>
+                        <div class="buttons" style="margin-top: 30px;">
+                            <button id="show-final-results-btn">Mostrar Resultados Finales</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Selección de equipo para estudiantes -->
+        <div id="team-selection" class="team-selection">
+            <h2>Selecciona tu Equipo</h2>
+            <div id="student-teams-grid" class="team-grid">
+                <!-- Los equipos se cargarán dinámicamente aquí -->
+            </div>
+            <div class="buttons">
+                <button id="join-team-btn" disabled>Unirse al Equipo</button>
+            </div>
+        </div>
+        
+        <!-- Contenedor del juego -->
+        <div id="game-container" class="game-container">
+            <div class="team-info">
+                <h3>Equipo: <span id="current-team-name">-</span></h3>
+                <div class="progress">
+                    <div class="progress-bar" id="progress"></div>
+                </div>
+            </div>
+            
+            <div id="question-container" class="question">
+                <h3 id="question-text">Pregunta aparecerá aquí</h3>
+                <div class="image-container" id="question-image-container">
+                    <!-- La imagen se insertará aquí si es necesario -->
+                </div>
+                <div class="options" id="options-container">
+                    <!-- Las opciones se insertarán aquí -->
+                </div>
+                <div class="feedback" id="feedback"></div>
+                <div class="explanation" id="explanation"></div>
+            </div>
+            
+            <div class="buttons">
+                <button id="check-btn">Comprobar</button>
+                <button id="next-btn" disabled>Siguiente</button>
+            </div>
+            
+            <div class="result" id="result"></div>
+        </div>
+        
+        <!-- Pantalla de resultados finales -->
+        <div id="results-container" class="results-container">
+            <h2 class="results-title">¡Juego Finalizado!</h2>
+            <div id="final-results" class="team-results">
+                <!-- Los resultados finales se cargarán dinámicamente aquí -->
+            </div>
+            <div class="buttons">
+                <button id="new-game-btn">Nuevo Juego</button>
+            </div>
+        </div>
     </div>
 
-    <div id="team-section" class="hidden">
-      <h2>Selecciona tu equipo</h2>
-      <div id="teams-list" class="team-grid"></div>
-    </div>
-
-    <div id="question-section" class="hidden">
-      <h2>Responde la pregunta</h2>
-      <div class="question-box">
-        <div id="question-text"></div>
-        <div id="options-list"></div>
-      </div>
-      <button class="btn" id="submit-answer" onclick="submitAnswer()" disabled>Enviar respuesta</button>
-    </div>
-
-    <div id="waiting-section" class="hidden">
-      <div class="summary">
-        <h3>¡Gracias! Espera a que todos terminen o a que el admin finalice el juego.</h3>
-      </div>
-    </div>
-
-    <div id="admin-panel" class="hidden">
-      <h2>Panel de Propietario</h2>
-      <button class="btn" onclick="finalizarJuego()">Finalizar juego y mostrar resultados</button>
-      <div id="admin-status"></div>
-    </div>
-
-    <div id="result-section" class="hidden">
-      <h2>Resultados</h2>
-      <table class="result-table">
-        <thead>
-          <tr>
-            <th>Equipo</th>
-            <th>Integrantes</th>
-            <th>Promedio</th>
-          </tr>
-        </thead>
-        <tbody id="result-table-body"></tbody>
-      </table>
-      <div id="winner-msg" class="summary"></div>
-    </div>
-  </div>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script>
-    // Configuración de Firebase (pon tus credenciales aquí)
-    const firebaseConfig = {
-      apiKey: "TU_API_KEY",
-      authDomain: "TU_AUTH_DOMAIN",
-      databaseURL: "TU_DATABASE_URL",
-      projectId: "TU_PROJECT_ID",
-      storageBucket: "TU_STORAGE_BUCKET",
-      messagingSenderId: "TU_MESSAGING_SENDER_ID",
-      appId: "TU_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-
-    // Equipos fijos
-    const teamIds = ["teamA", "teamB", "teamC", "teamD", "teamE"];
-    const teamNames = {
-      teamA: "Equipo A",
-      teamB: "Equipo B",
-      teamC: "Equipo C",
-      teamD: "Equipo D",
-      teamE: "Equipo E"
-    };
-
-    // Pregunta de ejemplo (puedes poner más)
-    const questions = [
-      {
-        text: "¿Qué representa el valor p en un estudio estadístico?",
-        options: [
-          "La probabilidad de que la hipótesis nula sea verdadera",
-          "La probabilidad de obtener los resultados observados si la hipótesis nula es cierta",
-          "El porcentaje de aciertos en la muestra",
-          "El nivel de confianza del estudio"
-        ],
-        correct: 1
-      }
-    ];
-
-    // Estado global
-    let currentUser = null;
-    let currentRole = "user";
-    let selectedTeam = null;
-    let currentQuestion = 0;
-    let hasAnswered = false;
-    let isAdmin = false;
-
-    // Login
-    document.querySelectorAll('input[name="role"]').forEach(radio => {
-      radio.addEventListener('change', e => {
-        if (e.target.value === "admin") {
-          document.getElementById("user-login").classList.add("hidden");
-          document.getElementById("admin-login").classList.remove("hidden");
-        } else {
-          document.getElementById("user-login").classList.remove("hidden");
-          document.getElementById("admin-login").classList.add("hidden");
-        }
-      });
-    });
-
-    function loginUser() {
-      const name = document.getElementById("user-name").value.trim();
-      if (!name) { alert("Ingresa tu nombre."); return; }
-      currentUser = name;
-      currentRole = "user";
-      document.getElementById("login-section").classList.add("hidden");
-      document.getElementById("team-section").classList.remove("hidden");
-      cargarEquipos();
-    }
-
-    function loginAdmin() {
-      const pass = document.getElementById("admin-pass").value;
-      if (pass !== "admin123") { alert("Contraseña incorrecta."); return; }
-      isAdmin = true;
-      currentRole = "admin";
-      document.getElementById("login-section").classList.add("hidden");
-      document.getElementById("admin-panel").classList.remove("hidden");
-      cargarEquipos();
-      actualizarAdminStatus();
-    }
-
-    // Inicializar equipos en la base si no existen
-    function inicializarEquipos() {
-      teamIds.forEach(teamId => {
-        firebase.database().ref(`teams/${teamId}`).once('value', snap => {
-          if (!snap.exists()) {
-            firebase.database().ref(`teams/${teamId}`).set({
-              name: teamNames[teamId],
-              members: {}
-            });
-          }
-        });
-      });
-    }
-    inicializarEquipos();
-
-    // Renderizar equipos
-    function cargarEquipos() {
-      firebase.database().ref('teams').on('value', snapshot => {
-        const teamsData = snapshot.val() || {};
-        const teamsList = document.getElementById('teams-list');
-        if (teamsList) {
-          teamsList.innerHTML = '';
-          teamIds.forEach(teamId => {
-            const team = teamsData[teamId] || { members: {} };
-            const numIntegrantes = team.members ? Object.keys(team.members).length : 0;
-            const scores = team.members ? Object.values(team.members).map(m => m.score ?? null).filter(s => s !== null) : [];
-            const promedio = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-            teamsList.innerHTML += `
-              <div class="team-card">
-                <div class="team-name">${teamNames[teamId]}</div>
-                <div>Integrantes: <span id="integrantes-${teamId}">${numIntegrantes}</span></div>
-                <div>Promedio: <span id="promedio-${teamId}">${promedio.toFixed(2)}</span></div>
-                ${currentRole === "user" ? `<button class="btn" onclick="joinTeam('${teamId}')" ${selectedTeam ? "disabled" : ""}>Unirse</button>` : ""}
-              </div>
-            `;
-          });
-        }
-        // Si ya seleccionó equipo, muestra pregunta
-        if (selectedTeam && currentRole === "user") {
-          document.getElementById("team-section").classList.add("hidden");
-          if (!hasAnswered) {
-            mostrarPregunta();
-          } else {
-            document.getElementById("waiting-section").classList.remove("hidden");
-          }
-        }
-        // Si admin, actualiza panel
-        if (isAdmin) actualizarAdminStatus();
-      });
-    }
-
-    // Unirse a un equipo
-    window.joinTeam = function(teamId) {
-      if (!currentUser) return;
-      selectedTeam = teamId;
-      firebase.database().ref(`teams/${teamId}/members/${currentUser}`).set({
-        displayName: currentUser,
-        score: null
-      });
-      document.getElementById("team-section").classList.add("hidden");
-      mostrarPregunta();
-    };
-
-    // Mostrar pregunta
-    function mostrarPregunta() {
-      document.getElementById("question-section").classList.remove("hidden");
-      const q = questions[currentQuestion];
-      document.getElementById("question-text").textContent = q.text;
-      const optionsList = document.getElementById("options-list");
-      optionsList.innerHTML = '';
-      q.options.forEach((opt, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "option-btn";
-        btn.textContent = opt;
-        btn.onclick = function() {
-          document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
-          document.getElementById("submit-answer").disabled = false;
-          btn.dataset.selected = idx;
+    <script>
+        // Configuración de Firebase (reemplazar con tus propias credenciales)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEMOKEY",
+            authDomain: "estadistica-juego.firebaseapp.com",
+            databaseURL: "https://estadistica-juego-default-rtdb.firebaseio.com",
+            projectId: "estadistica-juego",
+            storageBucket: "estadistica-juego.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
         };
-        optionsList.appendChild(btn);
-      });
-      document.getElementById("submit-answer").disabled = true;
-    }
-
-    // Enviar respuesta
-    function submitAnswer() {
-      const selectedBtn = document.querySelector(".option-btn.selected");
-      if (!selectedBtn) return;
-      const selectedIdx = Array.from(document.querySelectorAll(".option-btn")).indexOf(selectedBtn);
-      // Guarda la calificación (1 si correcta, 0 si incorrecta)
-      const esCorrecta = selectedIdx === questions[currentQuestion].correct;
-      firebase.database().ref(`teams/${selectedTeam}/members/${currentUser}/score`).set(esCorrecta ? 10 : 0);
-      hasAnswered = true;
-      document.getElementById("question-section").classList.add("hidden");
-      document.getElementById("waiting-section").classList.remove("hidden");
-      // Si admin, actualiza panel
-      if (isAdmin) actualizarAdminStatus();
-    }
-
-    // Admin: finalizar juego
-    function finalizarJuego() {
-      firebase.database().ref('gameState').set({ finished: true });
-    }
-
-    // Mostrar resultados
-    function mostrarResultados(teamsData) {
-      document.getElementById("admin-panel").classList.add("hidden");
-      document.getElementById("waiting-section").classList.add("hidden");
-      document.getElementById("result-section").classList.remove("hidden");
-      const tbody = document.getElementById("result-table-body");
-      tbody.innerHTML = '';
-      let maxProm = -1, ganador = [];
-      teamIds.forEach(teamId => {
-        const team = teamsData[teamId] || { members: {} };
-        const integrantes = team.members ? Object.keys(team.members).length : 0;
-        const scores = team.members ? Object.values(team.members).map(m => m.score ?? null).filter(s => s !== null) : [];
-        const promedio = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-        if (promedio > maxProm) { maxProm = promedio; ganador = [teamNames[teamId]]; }
-        else if (promedio === maxProm && promedio > 0) { ganador.push(teamNames[teamId]); }
-        tbody.innerHTML += `
-          <tr${promedio === maxProm && promedio > 0 ? ' class="winner"' : ''}>
-            <td>${teamNames[teamId]}</td>
-            <td>${integrantes}</td>
-            <td>${promedio.toFixed(2)}</td>
-          </tr>
-        `;
-      });
-      document.getElementById("winner-msg").innerHTML = ganador.length && maxProm > 0
-        ? `¡Equipo ganador: <b>${ganador.join(', ')}</b>!`
-        : "No hay equipo ganador.";
-    }
-
-    // Admin: ver estado de respuestas
-    function actualizarAdminStatus() {
-      firebase.database().ref('teams').once('value', snap => {
-        const teamsData = snap.val() || {};
-        let total = 0, respondidos = 0;
-        teamIds.forEach(teamId => {
-          const team = teamsData[teamId] || { members: {} };
-          const miembros = team.members ? Object.values(team.members) : [];
-          total += miembros.length;
-          respondidos += miembros.filter(m => m.score !== null).length;
-        });
-        document.getElementById("admin-status").innerHTML =
-          `<p>Participantes: <b>${total}</b> | Han respondido: <b>${respondidos}</b></p>`;
-      });
-    }
-
-    // Escuchar finalización del juego o respuestas completas
-    firebase.database().ref('gameState').on('value', snap => {
-      const state = snap.val();
-      if (state && state.finished) {
-        firebase.database().ref('teams').once('value', snap2 => {
-          mostrarResultados(snap2.val() || {});
-        });
-      }
-    });
-
-    // Para mostrar resultados automáticamente si todos respondieron
-    firebase.database().ref('teams').on('value', snap => {
-      const teamsData = snap.val() || {};
-      let total = 0, respondidos = 0;
-      teamIds.forEach(teamId => {
-        const team = teamsData[teamId] || { members: {} };
-        const miembros = team.members ? Object.values(team.members) : [];
-        total += miembros.length;
-        respondidos += miembros.filter(m => m.score !== null).length;
-      });
-      if (total > 0 && total === respondidos) {
-        firebase.database().ref('gameState').set({ finished: true });
-      }
-    });
-
-  </script>
-</body>
-</html>
+        
+        // Inicializar Firebase (comentado para evitar errores, ya que no tenemos credenciales reales)
+        // firebase.initializeApp(firebaseConfig);
+        
+        // Simulación de base de datos para el prototipo
+        const simulatedDB = {
+            sessions: {
+                "ABC123": {
+                    active: true,
+                    startTime: Date.now(),
+                    teams: {}
+                }
+            },
+            teams: {
+                "team1": { name: "Equipo A", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
+                "team2": { name: "Equipo B", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
+                "team3": { name: "Equipo C", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
+                "team4": { name: "Equipo D", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
+                "team5": { name: "Equipo E", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 }
+            }
+        };
+        
+        // Variables globales
+        let sessionCode = generateSessionCode();
+        let allTeamsFinished = false;
+        let gameActive = false;
+        
+        // Generar un código de sesión aleatorio
+        function generateSessionCode() {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            let code = "";
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+        
+        // Generar código QR
+        function generateQRCode(text) {
+            const qr = qrcode(0, 'M');
+            qr.addData(text);
+            qr.make();
+            return qr.createImgTag(5);
+        }
+        
+        // Preguntas del juego
+        const questions = [
+            {
+                question: "¿Qué representa el valor p en un estudio sobre la eficacia de un nuevo antibiótico para tratar mastitis en vacas?",
+                options: [
+                    "La probabilidad de que el antibiótico sea efectivo",
+                    "La probabilidad de obtener los resultados observados (o más extremos) si el antibiótico no tiene efecto",
+                    "El porcentaje de vacas que se curaron con el antibiótico",
+                    "El nivel de significancia establecido por el investigador"
+                ],
+                correctIndex: 1,
+                explanation: "El valor p representa la probabilidad de obtener los resultados observados (o más extremos) si la hipótesis nula fuera cierta. En este caso, si el antibiótico realmente no tuviera efecto. Un valor p pequeño sugiere que es poco probable que los resultados se deban al azar.",
+                image: "https://cdn.abacus.ai/images/7738cc8a-108f-44e1-a8a0-81ec96bd8772.png"
+            },
+            {
+                question: "En un estudio sobre el efecto de un suplemento alimenticio en el peso de terneros, se obtuvo un valor p de 0.03. ¿Qué significa esto?",
+                options: [
+                    "El suplemento aumenta el peso en un 3%",
+                    "Hay un 3% de probabilidad de que el suplemento sea efectivo",
+                    "Hay un 3% de probabilidad de obtener estos resultados (o más extremos) si el suplemento no tiene efecto",
+                    "El 3% de los terneros respondieron al suplemento"
+                ],
+                correctIndex: 2,
+                explanation: "Un valor p de 0.03 significa que hay un 3% de probabilidad de obtener estos resultados (o más extremos) si la hipótesis nula fuera cierta (si el suplemento no tuviera efecto). Como es menor que el nivel de significancia típico de 0.05, generalmente se consideraría estadísticamente significativo.",
+                image: null
+            },
+            {
+                question: "¿Qué es el valor crítico en una prueba de hipótesis sobre la eficacia de una vacuna en cerdos?",
+                options: [
+                    "El número mínimo de cerdos que deben ser vacunados",
+                    "El valor que determina el límite entre rechazar o no rechazar la hipótesis nula",
+                    "El porcentaje mínimo de eficacia que debe tener la vacuna",
+                    "La dosis mínima efectiva de la vacuna"
+                ],
+                correctIndex: 1,
+                explanation: "El valor crítico es el punto de corte en la distribución de probabilidad que separa la región de rechazo de la región de no rechazo de la hipótesis nula. Si el estadístico de prueba es más extremo que el valor crítico, rechazamos la hipótesis nula.",
+                image: "https://cdn.abacus.ai/images/c2d4ed73-1b0c-4fc9-8878-b9941b16bf3b.png"
+            },
+            {
+                question: "En un estudio sobre dos métodos de inseminación artificial en bovinos, ¿qué significa un valor p = 0.08?",
+                options: [
+                    "Hay una diferencia significativa entre los dos métodos",
+                    "No hay una diferencia significativa entre los dos métodos (asumiendo α = 0.05)",
+                    "El método nuevo es 8% mejor que el método tradicional",
+                    "Hay un 8% de probabilidad de que ambos métodos sean iguales"
+                ],
+                correctIndex: 1,
+                explanation: "Un valor p de 0.08 es mayor que el nivel de significancia típico de 0.05, lo que significa que no rechazamos la hipótesis nula. Por lo tanto, no hay evidencia suficiente para afirmar que existe una diferencia significativa entre los dos métodos de inseminación.",
+                image: null
+            },
+            {
+                question: "¿Cuál de las siguientes afirmaciones sobre el valor p es INCORRECTA?",
+                options: [
+                    "Un valor p pequeño indica evidencia contra la hipótesis nula",
+                    "El valor p es la probabilidad de que la hipótesis nula sea verdadera",
+                    "El valor p se compara con el nivel de significancia (α) para tomar decisiones",
+                    "Un valor p = 0.01 proporciona mayor evidencia contra la hipótesis nula que un valor p = 0.05"
+                ],
+                correctIndex: 1,
+                explanation: "La afirmación incorrecta es que 'El valor p es la probabilidad de que la hipótesis nula sea verdadera'. El valor p NO indica la probabilidad de que la hipótesis nula sea verdadera o falsa. Es la probabilidad de obtener los resultados observados (o más extremos) si la hipótesis nula fuera cierta.",
+                image: null
+            },
+            {
+                question: "En un experimento sobre el efecto de un nuevo alimento en el peso de pollos, se obtuvo el siguiente resultado. ¿Qué conclusión es correcta?",
+                options: [
+                    "No hay diferencia significativa entre los dos alimentos",
+                    "El nuevo alimento produce un aumento significativo en el peso de los pollos",
+                    "El alimento tradicional es mejor que el nuevo",
+                    "No se puede determinar sin conocer el valor p"
+                ],
+                correctIndex: 1,
+                explanation: "La imagen muestra una diferencia estadísticamente significativa (indicada por el asterisco) entre el grupo control y el grupo con el nuevo alimento. El nuevo alimento produce un aumento significativo en el peso de los pollos.",
+                image: "https://cdn.abacus.ai/images/4f3a871a-7027-422d-bcf4-e0d9a1349caf.png"
+            },
+            {
+                question: "Si en un estudio sobre la eficacia de una vacuna contra la fiebre aftosa en bovinos se establece α = 0.01, ¿qué significa esto?",
+                options: [
+                    "La vacuna debe tener al menos 1% de eficacia",
+                    "Se acepta un 1% de probabilidad de concluir incorrectamente que la vacuna es efectiva cuando no lo es",
+                    "La vacuna debe funcionar en al menos el 99% de los animales",
+                    "El 1% de los animales no responderá a la vacuna"
+                ],
+                correctIndex: 1,
+                explanation: "El nivel de significancia (α) representa la probabilidad máxima que estamos dispuestos a aceptar de cometer un error Tipo I, es decir, rechazar incorrectamente la hipótesis nula cuando es verdadera. En este caso, estamos dispuestos a aceptar un 1% de probabilidad de concluir que la vacuna es efectiva cuando en realidad no lo es.",
+                image: null
+            },
+            {
+                question: "Observa la siguiente gráfica sobre el efecto de una vacuna en bovinos. ¿Qué conclusión es correcta?",
+                options: [
+                    "La vacuna no tiene efecto significativo",
+                    "La vacuna reduce significativamente la enfermedad",
+                    "La vacuna aumenta la enfermedad",
+                    "No se puede determinar el efecto sin más información"
+                ],
+                correctIndex: 1,
+                explanation: "La gráfica muestra una diferencia estadísticamente significativa (p < 0.001, indicado por *
