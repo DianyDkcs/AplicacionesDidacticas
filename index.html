@@ -55,8 +55,29 @@ const questions = [
     ],
     correctIndex: 2,
     explanation: "Un valor p de 0.03 significa que hay un 3% de probabilidad de obtener estos resultados si la hipótesis nula fuera cierta."
+  },
+  {
+    question: "¿Qué es el valor crítico en una prueba de hipótesis?",
+    options: [
+      "El número mínimo de animales que deben ser vacunados",
+      "El valor que determina el límite entre rechazar o no rechazar la hipótesis nula",
+      "El porcentaje mínimo de eficacia que debe tener la vacuna",
+      "La dosis mínima efectiva de la vacuna"
+    ],
+    correctIndex: 1,
+    explanation: "El valor crítico es el punto de corte en la distribución de probabilidad que separa la región de rechazo de la región de no rechazo de la hipótesis nula."
+  },
+  {
+    question: "¿Cuándo se rechaza la hipótesis nula en un estudio?",
+    options: [
+      "Cuando el valor p es mayor que el nivel de significancia",
+      "Cuando el valor p es menor que el nivel de significancia",
+      "Cuando el valor p es igual a 0.5",
+      "Cuando el estadístico de prueba está dentro de la región de aceptación"
+    ],
+    correctIndex: 1,
+    explanation: "Se rechaza la hipótesis nula cuando el valor p es menor que el nivel de significancia (α) establecido."
   }
-  // ... Puedes agregar más preguntas aquí
 ];
 
 function App() {
@@ -76,6 +97,7 @@ function App() {
   const [confetti, setConfetti] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newAdminPass, setNewAdminPass] = useState("");
+  const [showQR, setShowQR] = useState(false);
 
   // Sincronización localStorage
   useEffect(() => {
@@ -118,6 +140,7 @@ function App() {
     };
     setData(d => ({ ...d, sessions: { ...d.sessions, [code]: session }, lastSession: code }));
     setSessionCode(code);
+    setShowQR(true);
   }
 
   function handleEndSession() {
@@ -224,6 +247,20 @@ function App() {
     }
   }
 
+  // --- QR GENERATION ---
+  function QRCode({ value }) {
+    const ref = React.useRef();
+    useEffect(() => {
+      if (!window.qrcode) return;
+      ref.current.innerHTML = "";
+      const qr = window.qrcode(0, 'M');
+      qr.addData(value);
+      qr.make();
+      ref.current.innerHTML = qr.createImgTag(4);
+    }, [value]);
+    return <div ref={ref} />;
+  }
+
   // --- RENDER ---
   return (
     <div className={theme === "dark" ? "bg-gray-900 text-white min-h-screen" : "min-h-screen"}>
@@ -259,6 +296,13 @@ function App() {
           <div className="mb-2">Código de sesión: <span className="font-mono text-lg">{sessionCode || "-"}</span></div>
           <button className="bg-green-600 text-white p-2 rounded mr-2" onClick={handleStartSession}>Iniciar juego</button>
           <button className="bg-red-600 text-white p-2 rounded" onClick={handleEndSession}>Finalizar sesión</button>
+          {sessionCode && showQR && (
+            <div className="mt-4">
+              <h3 className="font-bold">Código QR para estudiantes</h3>
+              <QRCode value={window.location.href.split('?')[0] + '?session=' + sessionCode} />
+              <div className="text-xs mt-2">Escanea o comparte este código para unirse a la sesión.</div>
+            </div>
+          )}
           <div className="mt-4">
             <h3 className="font-bold">Equipos</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -321,7 +365,7 @@ function App() {
           <div className="mb-2 font-bold">{questions[currentQuestion].question}</div>
           <div className="grid grid-cols-1 gap-2">
             {questions[currentQuestion].options.map((opt, idx) => (
-              <button key={idx} className={"border rounded p-2 text-left " + (selectedOption===idx?"bg-blue-200":"")} disabled={selectedOption!==null} onClick={()=>handleAnswer(idx)}>{opt}</button>
+              <button key={idx} className={"border rounded p-2 text-left " + (selectedOption===idx? (idx===questions[currentQuestion].correctIndex?"bg-green-200":"bg-red-200") : "")} disabled={selectedOption!==null} onClick={()=>handleAnswer(idx)}>{opt}</button>
             ))}
           </div>
           {showExplanation && (
