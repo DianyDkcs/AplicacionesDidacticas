@@ -4,25 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Juego de Estadística Profesional</title>
-  <!-- Tailwind CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <!-- Font Awesome for icons (opcional) -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <!-- QRCode.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-gray-100">
   <div id="root"></div>
-  <!-- React and ReactDOM -->
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-  <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script>
-    // Tu configuración de Firebase
     var firebaseConfig = {
       apiKey: "AIzaSyBWXh6b3nm30dYz4CSB-s8BmO5jGF7g_xE",
       authDomain: "juegoestadistica-e1093.firebaseapp.com",
@@ -33,13 +26,13 @@
       appId: "1:92481828540:web:c5b18ddb4ade427bc342b9",
       measurementId: "G-89X3FER6K3"
     };
-    // Inicializa Firebase
     firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
   </script>
   <script type="text/babel">
 
-// Utilidades
+const { useState, useEffect, useRef } = React;
+
 function generateSessionCode() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "";
@@ -56,53 +49,175 @@ const defaultTeams = [
 ];
 
 const questions = [
+  // 1
   {
-    question: "¿Qué representa el valor p en un estudio sobre la eficacia de un nuevo antibiótico?",
+    question: "Un grupo de 40 perros recibe un nuevo tratamiento antiparasitario. El valor p del estudio es 0.03. ¿Rechazas la hipótesis nula? ¿Por qué?",
     options: [
-      "La probabilidad de que el antibiótico sea efectivo",
-      "La probabilidad de obtener los resultados observados si el antibiótico no tiene efecto",
-      "El porcentaje de vacas que se curaron",
-      "El nivel de significancia"
+      "No, porque el valor p es mayor a 0.05",
+      "Sí, porque el valor p es menor a 0.05, lo que indica que el resultado es poco probable por casualidad",
+      "No, porque el resultado es poco probable",
+      "Sí, porque el valor p es mayor a 0.05"
     ],
     correctIndex: 1,
-    explanation: "El valor p representa la probabilidad de obtener los resultados observados (o más extremos) si la hipótesis nula fuera cierta."
+    explanation: "Sí, porque el valor p es menor a 0.05, lo que indica que el resultado es poco probable por casualidad."
   },
+  // 2
   {
-    question: "En un estudio sobre el efecto de un suplemento alimenticio en el peso de terneros, se obtuvo un valor p de 0.03. ¿Qué significa esto?",
+    question: "Se prueba un nuevo suplemento alimenticio en vacas lecheras. El valor crítico es 2.0 y el resultado del experimento es 2.5. ¿Rechazas la hipótesis nula? ¿Por qué?",
     options: [
-      "El suplemento aumenta el peso en un 3%",
-      "Hay un 3% de probabilidad de que el suplemento sea efectivo",
-      "Hay un 3% de probabilidad de obtener estos resultados si el suplemento no tiene efecto",
-      "El 3% de los terneros respondieron al suplemento"
-    ],
-    correctIndex: 2,
-    explanation: "Un valor p de 0.03 significa que hay un 3% de probabilidad de obtener estos resultados si la hipótesis nula fuera cierta."
-  },
-  {
-    question: "¿Qué es el valor crítico en una prueba de hipótesis?",
-    options: [
-      "El número mínimo de animales que deben ser vacunados",
-      "El valor que determina el límite entre rechazar o no rechazar la hipótesis nula",
-      "El porcentaje mínimo de eficacia que debe tener la vacuna",
-      "La dosis mínima efectiva de la vacuna"
+      "No, porque el resultado es menor que el valor crítico",
+      "Sí, porque el resultado es mayor que el valor crítico, lo que indica que la diferencia es significativa",
+      "No, porque el valor crítico es bajo",
+      "Sí, porque el resultado es igual al valor crítico"
     ],
     correctIndex: 1,
-    explanation: "El valor crítico es el punto de corte en la distribución de probabilidad que separa la región de rechazo de la región de no rechazo de la hipótesis nula."
+    explanation: "Sí, porque el resultado es mayor que el valor crítico, lo que indica que la diferencia es significativa."
   },
+  // 3
   {
-    question: "¿Cuándo se rechaza la hipótesis nula en un estudio?",
+    question: "Se compara la proporción de gatos con una enfermedad antes y después de una vacuna. El valor p es 0.12. ¿Rechazas la hipótesis nula? ¿Por qué?",
     options: [
-      "Cuando el valor p es mayor que el nivel de significancia",
-      "Cuando el valor p es menor que el nivel de significancia",
-      "Cuando el valor p es igual a 0.5",
-      "Cuando el estadístico de prueba está dentro de la región de aceptación"
+      "Sí, porque el valor p es menor a 0.05",
+      "No, porque el valor p es mayor a 0.05, así que no hay suficiente evidencia para decir que la vacuna hizo una diferencia",
+      "Sí, porque la vacuna es efectiva",
+      "No, porque el valor p es igual a 0.05"
     ],
     correctIndex: 1,
-    explanation: "Se rechaza la hipótesis nula cuando el valor p es menor que el nivel de significancia (α) establecido."
+    explanation: "No, porque el valor p es mayor a 0.05, así que no hay suficiente evidencia para decir que la vacuna hizo una diferencia."
+  },
+  // 4
+  {
+    question: "Se mide el peso promedio de pollos con dos tipos de alimento. El valor crítico es 1.96 y el resultado es 1.5. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "Sí, porque el resultado supera el valor crítico",
+      "No, porque el resultado no supera el valor crítico, así que la diferencia puede ser por casualidad",
+      "Sí, porque el valor crítico es bajo",
+      "No, porque el resultado es igual al valor crítico"
+    ],
+    correctIndex: 1,
+    explanation: "No, porque el resultado no supera el valor crítico, así que la diferencia puede ser por casualidad."
+  },
+  // 5
+  {
+    question: "Se prueba un nuevo analgésico en caballos con dolor articular. El valor p obtenido es 0.008. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "No, porque el valor p es mayor a 0.05",
+      "Sí, porque el valor p es mucho menor a 0.05 (0.008 < 0.05), lo que indica una fuerte evidencia contra la hipótesis nula",
+      "No, porque el valor p es igual a 0.05",
+      "Sí, porque el valor p es mayor a 0.05"
+    ],
+    correctIndex: 1,
+    explanation: "Sí, porque el valor p es mucho menor a 0.05 (0.008 < 0.05), lo que indica una fuerte evidencia contra la hipótesis nula."
+  },
+  // 6
+  {
+    question: "Se compara la tasa de crecimiento de dos razas de cerdos. El valor crítico es 2.1 y el estadístico obtenido es 1.98. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "Sí, porque el estadístico supera el valor crítico",
+      "No, porque el estadístico (1.98) no supera el valor crítico (2.1), así que no hay suficiente evidencia para rechazar la hipótesis nula",
+      "Sí, porque el valor crítico es bajo",
+      "No, porque el estadístico es igual al valor crítico"
+    ],
+    correctIndex: 1,
+    explanation: "No, porque el estadístico (1.98) no supera el valor crítico (2.1), así que no hay suficiente evidencia para rechazar la hipótesis nula."
+  },
+  // 7
+  {
+    question: "Un estudio compara la eficacia de dos antibióticos en infecciones de piel en perros. El valor p es 0.049. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "Sí, pero apenas, porque el valor p (0.049) es ligeramente menor que 0.05, lo que indica evidencia justo suficiente para rechazar la hipótesis nula",
+      "No, porque el valor p es mayor a 0.05",
+      "Sí, porque el valor p es igual a 0.05",
+      "No, porque el valor p es igual a 0.05"
+    ],
+    correctIndex: 0,
+    explanation: "Sí, pero apenas, porque el valor p (0.049) es ligeramente menor que 0.05, lo que indica evidencia justo suficiente para rechazar la hipótesis nula."
+  },
+  // 8
+  {
+    question: "Se evalúa si un nuevo sistema de ventilación reduce el estrés térmico en vacas lecheras. El valor crítico es 1.65 (prueba de una cola) y el estadístico es 1.70. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "No, porque el estadístico es menor que el valor crítico",
+      "Sí, porque el estadístico (1.70) es mayor que el valor crítico (1.65), lo que indica que hay evidencia suficiente para rechazar la hipótesis nula",
+      "No, porque el valor crítico es bajo",
+      "Sí, porque el estadístico es igual al valor crítico"
+    ],
+    correctIndex: 1,
+    explanation: "Sí, porque el estadístico (1.70) es mayor que el valor crítico (1.65), lo que indica que hay evidencia suficiente para rechazar la hipótesis nula."
+  },
+  // 9
+  {
+    question: "Se investiga si un suplemento vitamínico mejora la calidad del pelaje en gatos. El valor p es 0.5. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "Sí, porque el valor p es menor a 0.05",
+      "No, porque el valor p (0.5) es mucho mayor que 0.05, lo que indica que no hay evidencia contra la hipótesis nula",
+      "Sí, porque el valor p es igual a 0.05",
+      "No, porque el valor p es igual a 0.05"
+    ],
+    correctIndex: 1,
+    explanation: "No, porque el valor p (0.5) es mucho mayor que 0.05, lo que indica que no hay evidencia contra la hipótesis nula."
+  },
+  // 10
+  {
+    question: "Se compara la producción de leche en vacas con dos dietas diferentes. El valor crítico es 2.04 y el estadístico es 3.15. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "No, porque el estadístico es menor que el valor crítico",
+      "Sí, porque el estadístico (3.15) es considerablemente mayor que el valor crítico (2.04), lo que indica una fuerte evidencia para rechazar la hipótesis nula",
+      "No, porque el valor crítico es bajo",
+      "Sí, porque el estadístico es igual al valor crítico"
+    ],
+    correctIndex: 1,
+    explanation: "Sí, porque el estadístico (3.15) es considerablemente mayor que el valor crítico (2.04), lo que indica una fuerte evidencia para rechazar la hipótesis nula."
+  },
+  // 11
+  {
+    question: "Se estudia si un nuevo protocolo de anestesia reduce el tiempo de recuperación en conejos. El valor p es 0.07. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "Sí, porque el valor p es menor a 0.05",
+      "No, porque el valor p (0.07) es mayor que 0.05, aunque está cerca. No hay suficiente evidencia para rechazar la hipótesis nula",
+      "Sí, porque el valor p es igual a 0.05",
+      "No, porque el valor p es igual a 0.05"
+    ],
+    correctIndex: 1,
+    explanation: "No, porque el valor p (0.07) es mayor que 0.05, aunque está cerca. No hay suficiente evidencia para rechazar la hipótesis nula."
+  },
+  // 12
+  {
+    question: "Se evalúa si un nuevo método de inseminación artificial mejora la tasa de preñez en ovejas. El valor crítico es 1.96 y el estadístico es 2.01. ¿Rechazas la hipótesis nula? ¿Por qué?",
+    options: [
+      "No, porque el estadístico es menor que el valor crítico",
+      "Sí, porque el estadístico (2.01) es mayor que el valor crítico (1.96), aunque por poco margen. Hay evidencia suficiente para rechazar la hipótesis nula",
+      "No, porque el valor crítico es bajo",
+      "Sí, porque el estadístico es igual al valor crítico"
+    ],
+    correctIndex: 1,
+    explanation: "Sí, porque el estadístico (2.01) es mayor que el valor crítico (1.96), aunque por poco margen. Hay evidencia suficiente para rechazar la hipótesis nula."
+  },
+  // 13
+  {
+    question: "Si el valor p de un estudio es 0.03, esto significa que:",
+    options: [
+      "Hay un 3% de probabilidad de que la hipótesis nula sea verdadera",
+      "Hay un 3% de probabilidad de obtener estos resultados o más extremos si la hipótesis nula es verdadera",
+      "Hay un 97% de probabilidad de que el tratamiento funcione",
+      "El efecto del tratamiento es pequeño (solo 3%)"
+    ],
+    correctIndex: 1,
+    explanation: "El valor p indica la probabilidad de obtener estos resultados o más extremos si la hipótesis nula es verdadera."
+  },
+  // 14
+  {
+    question: "Si el valor crítico es 2.0 y obtenemos un estadístico de 1.8, esto significa que:",
+    options: [
+      "Rechazamos la hipótesis nula porque 1.8 es un número grande",
+      "No rechazamos la hipótesis nula porque 1.8 < 2.0",
+      "El resultado es significativo al 5%",
+      "El tratamiento tiene un efecto del 90%"
+    ],
+    correctIndex: 1,
+    explanation: "No rechazamos la hipótesis nula porque 1.8 < 2.0."
   }
 ];
-
-const { useState, useEffect, useRef } = React;
 
 function App() {
   const [view, setView] = useState("login");
@@ -117,24 +232,29 @@ function App() {
   const [confetti, setConfetti] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [teams, setTeams] = useState([]);
+  const [students, setStudents] = useState({});
   const [adminSession, setAdminSession] = useState(null);
   const [studentSession, setStudentSession] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const qrRef = useRef(null);
 
   // Cargar datos de la sesión en tiempo real
   useEffect(() => {
     if (sessionCode) {
-      const ref = db.ref('sessions/' + sessionCode);
-      ref.on('value', snapshot => {
-        const data = snapshot.val();
-        if (data) {
-          setTeams(data.teams || []);
-          setAdminSession(data);
-        }
+      const refTeams = db.ref('sessions/' + sessionCode + '/teams');
+      const refStudents = db.ref('sessions/' + sessionCode + '/students');
+      refTeams.on('value', snapshot => {
+        setTeams(snapshot.val() || []);
       });
-      return () => ref.off();
+      refStudents.on('value', snapshot => {
+        setStudents(snapshot.val() || {});
+      });
+      return () => {
+        refTeams.off();
+        refStudents.off();
+      };
     }
-  }, [sessionCode]);
+  }, [sessionCode, refreshKey]);
 
   // QR dinámico
   useEffect(() => {
@@ -191,7 +311,8 @@ function App() {
       finished: false,
       teams: defaultTeams.map(t => ({ ...t, members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 })),
       questions,
-      answers: {}
+      answers: {},
+      students: {}
     };
     db.ref('sessions/' + code).set(session);
     setSessionCode(code);
@@ -211,8 +332,8 @@ function App() {
       return;
     }
     setNameError(false);
-    const ref = db.ref('sessions/' + sessionCode + '/teams');
-    ref.once('value').then(snapshot => {
+    const refTeams = db.ref('sessions/' + sessionCode + '/teams');
+    refTeams.once('value').then(snapshot => {
       const teams = snapshot.val() || [];
       const updatedTeams = teams.map(t => {
         if (t.id === teamId && (!t.members || !t.members.includes(studentName))) {
@@ -223,11 +344,19 @@ function App() {
         }
         return t;
       });
-      ref.set(updatedTeams);
+      refTeams.set(updatedTeams);
       setSelectedTeam(teamId);
       setStudentSession({ code: sessionCode, teamId, name: studentName, answers: [] });
       setCurrentQuestion(0);
       setView("game");
+      // Registrar estudiante en rama students
+      db.ref('sessions/' + sessionCode + '/students/' + studentName).set({
+        name: studentName,
+        teamId,
+        score: 0,
+        correct: 0,
+        answered: 0
+      });
     });
   }
 
@@ -235,8 +364,9 @@ function App() {
     setSelectedOption(optionIdx);
     setShowExplanation(true);
     // Actualizar puntaje en Firebase
-    const ref = db.ref('sessions/' + sessionCode + '/teams');
-    ref.once('value').then(snapshot => {
+    const refTeams = db.ref('sessions/' + sessionCode + '/teams');
+    const refStudent = db.ref('sessions/' + sessionCode + '/students/' + studentName);
+    refTeams.once('value').then(snapshot => {
       const teams = snapshot.val() || [];
       const updatedTeams = teams.map(t => {
         if (t.id === selectedTeam) {
@@ -255,7 +385,24 @@ function App() {
         }
         return t;
       });
-      ref.set(updatedTeams);
+      refTeams.set(updatedTeams);
+    });
+    // Actualizar progreso individual
+    refStudent.once('value').then(snapshot => {
+      const data = snapshot.val() || {};
+      let correct = data.correct || 0;
+      let score = data.score || 0;
+      let answered = data.answered || 0;
+      if (optionIdx === questions[currentQuestion].correctIndex) {
+        correct++;
+        score += 10;
+      }
+      answered++;
+      refStudent.update({
+        score,
+        correct,
+        answered
+      });
     });
   }
 
@@ -268,6 +415,10 @@ function App() {
       setView("results");
       setConfetti(true);
     }
+  }
+
+  function handleRefresh() {
+    setRefreshKey(k => k + 1);
   }
 
   return (
@@ -320,6 +471,9 @@ function App() {
                 Finalizar sesión
               </button>
             )}
+            <button className="bg-gray-400 text-white p-2 rounded ml-2" onClick={handleRefresh}>
+              <i className="fas fa-sync-alt"></i> Refrescar
+            </button>
           </div>
           {sessionCode && (
             <div className="mb-4 p-3 bg-blue-50 rounded text-sm">
@@ -343,26 +497,46 @@ function App() {
             </div>
           )}
           <div className="mt-4">
-            <h3 className="font-bold">Equipos</h3>
+            <h3 className="font-bold">Equipos y estudiantes</h3>
             <div className="grid grid-cols-2 gap-2">
               {(teams.length ? teams : defaultTeams).map(t => (
                 <div key={t.id} className="border rounded p-2">
                   <div className="font-bold">{t.name}</div>
                   <div>Integrantes: {t.members ? t.members.length : 0}</div>
+                  <ul className="text-xs mt-1">
+                    {(t.members || []).map(m => (
+                      <li key={m}>- {m}</li>
+                    ))}
+                  </ul>
                   <div>Puntos: {t.score || 0}</div>
                 </div>
               ))}
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="font-bold">Clasificación</h3>
-            <table className="w-full text-sm">
-              <thead><tr><th>Equipo</th><th>Puntos</th><th>Correctas</th></tr></thead>
+            <h3 className="font-bold">Resultados individuales</h3>
+            <table className="w-full text-xs border">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="p-1">Estudiante</th>
+                  <th className="p-1">Equipo</th>
+                  <th className="p-1">Puntaje</th>
+                  <th className="p-1">Correctas</th>
+                  <th className="p-1">Respondidas</th>
+                </tr>
+              </thead>
               <tbody>
-                {(teams.length ? teams : defaultTeams)
-                  .slice().sort((a,b)=>(b.score||0)-(a.score||0))
-                  .map(t => (
-                  <tr key={t.id}><td>{t.name}</td><td>{t.score||0}</td><td>{t.correctAnswers||0}</td></tr>
+                {Object.values(students).length === 0 && (
+                  <tr><td colSpan={5} className="text-center p-2">Sin estudiantes aún</td></tr>
+                )}
+                {Object.values(students).map(s => (
+                  <tr key={s.name}>
+                    <td className="p-1">{s.name}</td>
+                    <td className="p-1">{(teams.find(t=>t.id===s.teamId)||{}).name || s.teamId}</td>
+                    <td className="p-1">{s.score || 0}</td>
+                    <td className="p-1">{s.correct || 0}</td>
+                    <td className="p-1">{s.answered || 0}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -433,7 +607,7 @@ function App() {
         <div className="max-w-lg mx-auto bg-white p-6 rounded shadow text-center">
           <h2 className="text-2xl font-bold mb-2">¡Juego finalizado!</h2>
           <div className="mb-2">Gracias por participar, <span className="font-bold">{studentName}</span> del <span className="font-bold">{defaultTeams.find(t=>t.id===selectedTeam)?.name}</span>.</div>
-          <div className="mb-2">Puntaje: <span className="font-bold">{teams.find(t=>t.id===selectedTeam)?.score || 0}</span></div>
+          <div className="mb-2">Puntaje: <span className="font-bold">{students[studentName]?.score || 0}</span></div>
           {confetti && <Confetti />}
           <button className="mt-4 bg-blue-600 text-white p-2 rounded" onClick={()=>window.location.reload()}>Volver al inicio</button>
         </div>
