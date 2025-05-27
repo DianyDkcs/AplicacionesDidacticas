@@ -1,4 +1,4 @@
-# Actualizar el código con los requisitos específicos
+# Actualizar el código para eliminar cualquier solicitud de correo electrónico
 
 html_content = '''<!DOCTYPE html>
 <html lang="es">
@@ -6,10 +6,6 @@ html_content = '''<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego de Estadística - Modo Competencia</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <!-- QR Code Generator -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
@@ -512,20 +508,6 @@ html_content = '''<!DOCTYPE html>
     </div>
 
     <script>
-        // Configuración de Firebase (reemplazar con tus propias credenciales)
-        const firebaseConfig = {
-            apiKey: "AIzaSyDEMOKEY",
-            authDomain: "estadistica-juego.firebaseapp.com",
-            databaseURL: "https://estadistica-juego-default-rtdb.firebaseio.com",
-            projectId: "estadistica-juego",
-            storageBucket: "estadistica-juego.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
-        };
-        
-        // Inicializar Firebase (comentado para evitar errores, ya que no tenemos credenciales reales)
-        // firebase.initializeApp(firebaseConfig);
-        
         // Contraseña de administrador
         const ADMIN_PASSWORD = "admin123";
         
