@@ -1,4 +1,4 @@
-# Actualizar el código con los 5 equipos solicitados
+# Actualizar el código con los requisitos específicos
 
 html_content = '''<!DOCTYPE html>
 <html lang="es">
@@ -315,6 +315,40 @@ html_content = '''<!DOCTYPE html>
                 opacity: 0;
             }
         }
+        .qr-code-display {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-code-display img {
+            max-width: 250px;
+            margin: 0 auto;
+        }
+        .team-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        .team-average {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .print-qr {
+            margin-top: 10px;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .qr-container, .qr-container * {
+                visibility: visible;
+            }
+            .qr-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -333,12 +367,8 @@ html_content = '''<!DOCTYPE html>
             </div>
             <div id="admin-login-fields">
                 <div class="input-group">
-                    <label for="admin-email">Correo electrónico:</label>
-                    <input type="email" id="admin-email" placeholder="admin@ejemplo.com">
-                </div>
-                <div class="input-group">
-                    <label for="admin-password">Contraseña:</label>
-                    <input type="password" id="admin-password" placeholder="********">
+                    <label for="admin-password">Contraseña de administrador:</label>
+                    <input type="password" id="admin-password" placeholder="Ingrese la contraseña">
                 </div>
             </div>
             <div id="student-login-fields" style="display: none;">
@@ -375,6 +405,7 @@ html_content = '''<!DOCTYPE html>
                                 <h4>Código QR para acceso de estudiantes</h4>
                                 <div id="qrcode"></div>
                                 <p>Los estudiantes pueden escanear este código QR o ingresar el código de sesión manualmente.</p>
+                                <button id="print-qr-btn" class="print-qr">Imprimir Código QR</button>
                             </div>
                             <div class="admin-controls">
                                 <h4>Controles de Sesión</h4>
@@ -409,8 +440,10 @@ html_content = '''<!DOCTYPE html>
                                 <tr>
                                     <th>Posición</th>
                                     <th>Equipo</th>
-                                    <th>Preguntas Respondidas</th>
-                                    <th>Respuestas Correctas</th>
+                                    <th>Integrantes</th>
+                                    <th>Preguntas</th>
+                                    <th>Correctas</th>
+                                    <th>Promedio</th>
                                     <th>Puntuación</th>
                                 </tr>
                             </thead>
@@ -492,6 +525,9 @@ html_content = '''<!DOCTYPE html>
         
         // Inicializar Firebase (comentado para evitar errores, ya que no tenemos credenciales reales)
         // firebase.initializeApp(firebaseConfig);
+        
+        // Contraseña de administrador
+        const ADMIN_PASSWORD = "admin123";
         
         // Simulación de base de datos para el prototipo
         const simulatedDB = {
