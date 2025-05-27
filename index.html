@@ -1,5 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Juego de Estadística Profesional</title>
+  <!-- Tailwind CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons (optional) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div id="root"></div>
+  <!-- React and ReactDOM -->
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- App Code -->
+  <script type="text/babel">
+
 // Juego de Estadística Profesional - Flujo Completo
-// Simula multiusuario y persistencia local
 const { useState, useEffect } = React;
 
 // Utilidades
@@ -11,7 +31,6 @@ function generateSessionCode() {
 }
 
 function getInitialData() {
-  // Carga de localStorage o valores por defecto
   const data = localStorage.getItem("estadisticaGameData");
   if (data) return JSON.parse(data);
   return {
@@ -81,10 +100,9 @@ const questions = [
 ];
 
 function App() {
-  // Estado global
   const [data, setData] = useState(getInitialData());
   const [theme, setTheme] = useState(data.theme || "light");
-  const [view, setView] = useState("login"); // login, admin, student, team, game, results
+  const [view, setView] = useState("login");
   const [role, setRole] = useState("student");
   const [adminPass, setAdminPass] = useState("");
   const [sessionCode, setSessionCode] = useState("");
@@ -93,14 +111,13 @@ function App() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [studentSession, setStudentSession] = useState(null); // {code, teamId, name, answers: []}
+  const [studentSession, setStudentSession] = useState(null);
   const [confetti, setConfetti] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newAdminPass, setNewAdminPass] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
   const [nameError, setNameError] = useState(false);
 
-  // Sincronización localStorage
   useEffect(() => {
     saveData(data);
   }, [data]);
@@ -109,7 +126,6 @@ function App() {
     document.body.style.background = theme === "dark" ? "#222" : "#f5f5f5";
   }, [theme]);
 
-  // Autollenar código de sesión desde la URL y cambiar vista
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -118,11 +134,8 @@ function App() {
         const sessionCode = session.toUpperCase();
         setSessionCode(sessionCode);
         setRole("student");
-        
-        // Verificar si la sesión existe en los datos
         const sessionData = data.sessions[sessionCode];
         if (sessionData) {
-          // Si la sesión existe, ir directamente a la vista de estudiante
           setView("student");
         }
       }
@@ -131,7 +144,6 @@ function App() {
     }
   }, [data.sessions]);
 
-  // --- LOGIN ---
   function handleLogin() {
     if (role === "admin") {
       if (adminPass === data.adminPassword) {
@@ -142,7 +154,6 @@ function App() {
       }
     } else {
       if (sessionCode.length === 6) {
-        // Verificar si la sesión existe
         if (data.sessions[sessionCode]) {
           setView("student");
         } else {
@@ -154,7 +165,6 @@ function App() {
     }
   }
 
-  // --- ADMIN ---
   function handleStartSession() {
     const code = generateSessionCode();
     const session = {
@@ -172,23 +182,16 @@ function App() {
 
   function handleEndSession() {
     if (!sessionCode) return;
-    
-    // Marcar la sesión como finalizada
     setData(d => {
       const s = { ...d.sessions[sessionCode], finished: true };
       return { ...d, sessions: { ...d.sessions, [sessionCode]: s } };
     });
-    
-    // Volver a la pantalla de login
     setSessionCode("");
     setView("login");
   }
 
-  // Función para copiar el código de sesión
   function copySessionCode() {
     if (!sessionCode) return;
-    
-    // Usar el API de portapapeles si está disponible
     if (navigator.clipboard) {
       navigator.clipboard.writeText(sessionCode)
         .then(() => {
@@ -200,13 +203,11 @@ function App() {
           alert("No se pudo copiar el código. Cópialo manualmente: " + sessionCode);
         });
     } else {
-      // Fallback para navegadores que no soportan clipboard API
       const textArea = document.createElement("textarea");
       textArea.value = sessionCode;
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
       try {
         document.execCommand('copy');
         setCopySuccess(true);
@@ -215,17 +216,13 @@ function App() {
         console.error('Error al copiar: ', err);
         alert("No se pudo copiar el código. Cópialo manualmente: " + sessionCode);
       }
-      
       document.body.removeChild(textArea);
     }
   }
 
-  // Función para copiar el enlace completo
   function copySessionLink() {
     if (!sessionCode) return;
-    
     const fullLink = window.location.href.split('?')[0] + '?session=' + sessionCode;
-    
     if (navigator.clipboard) {
       navigator.clipboard.writeText(fullLink)
         .then(() => {
@@ -242,7 +239,6 @@ function App() {
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
       try {
         document.execCommand('copy');
         setCopySuccess(true);
@@ -251,23 +247,18 @@ function App() {
         console.error('Error al copiar: ', err);
         alert("No se pudo copiar el enlace. Cópialo manualmente: " + fullLink);
       }
-      
       document.body.removeChild(textArea);
     }
   }
 
-  // --- STUDENT ---
   function handleJoinTeam(teamId) {
     if (!studentName.trim()) {
       setNameError(true);
       return;
     }
-    
     setNameError(false);
     const session = data.sessions[sessionCode];
     if (!session) return alert("Sesión no encontrada");
-    
-    // Evitar duplicados
     const teams = session.teams.map(t => {
       if (t.id === teamId && !t.members.includes(studentName)) {
         return { ...t, members: [...t.members, studentName] };
@@ -277,29 +268,24 @@ function App() {
       }
       return t;
     });
-    
     setData(d => {
       const s = { ...session, teams };
       return { ...d, sessions: { ...d.sessions, [sessionCode]: s } };
     });
-    
     setSelectedTeam(teamId);
     setView("game");
     setStudentSession({ code: sessionCode, teamId, name: studentName, answers: [] });
     setCurrentQuestion(0);
   }
 
-  // --- GAME ---
   function handleAnswer(optionIdx) {
     setSelectedOption(optionIdx);
     setShowExplanation(true);
-    // Guardar respuesta
     setStudentSession(s => {
       const answers = [...(s.answers || [])];
       answers[currentQuestion] = optionIdx;
       return { ...s, answers };
     });
-    // Actualizar score en data
     setData(d => {
       const session = d.sessions[sessionCode];
       const teams = session.teams.map(t => {
@@ -340,7 +326,6 @@ function App() {
     }
   }
 
-  // --- SETTINGS ---
   function handleSavePassword() {
     if (newAdminPass.length < 4) return alert("Contraseña muy corta");
     setData(d => ({ ...d, adminPassword: newAdminPass }));
@@ -360,7 +345,6 @@ function App() {
     }
   }
 
-  // --- RENDER ---
   return (
     <div className={theme === "dark" ? "bg-gray-900 text-white min-h-screen" : "min-h-screen"}>
       <h1 className="text-2xl font-bold text-center my-4">Juego de Estadística</h1>
@@ -392,8 +376,6 @@ function App() {
       {view === "admin" && (
         <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow">
           <h2 className="text-xl font-bold mb-2">Panel de Administrador</h2>
-          
-          {/* Código de sesión con botón de copiar */}
           {sessionCode ? (
             <div className="mb-4 p-3 bg-gray-100 rounded flex items-center justify-between">
               <div>
@@ -410,7 +392,6 @@ function App() {
           ) : (
             <div className="mb-4">No hay sesión activa</div>
           )}
-          
           <div className="flex mb-4">
             <button className="bg-green-600 text-white p-2 rounded mr-2" onClick={handleStartSession}>
               {sessionCode ? 'Nueva sesión' : 'Iniciar juego'}
@@ -421,8 +402,6 @@ function App() {
               </button>
             )}
           </div>
-          
-          {/* Instrucciones para compartir */}
           {sessionCode && (
             <div className="mb-4 p-3 bg-blue-50 rounded text-sm">
               <p className="font-bold">Compartir con estudiantes:</p>
@@ -443,8 +422,6 @@ function App() {
                 </li>
                 <li>Los estudiantes deben ingresar como "Estudiante" y usar el código</li>
               </ol>
-              
-              {/* QR Code simulado */}
               <div className="mt-3 p-2 bg-white border rounded text-center">
                 <div className="text-xs mb-1">Código QR (ilustrativo)</div>
                 <div className="w-32 h-32 mx-auto bg-gray-200 flex items-center justify-center">
@@ -454,7 +431,6 @@ function App() {
               </div>
             </div>
           )}
-          
           <div className="mt-4">
             <h3 className="font-bold">Equipos</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -504,13 +480,9 @@ function App() {
       {view === "student" && (
         <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
           <h2 className="text-xl font-bold mb-2">Unirse al juego</h2>
-          
-          {/* Información de la sesión */}
           <div className="mb-4 p-2 bg-blue-50 rounded">
             <div className="text-sm">Sesión: <span className="font-mono font-bold">{sessionCode}</span></div>
           </div>
-          
-          {/* Formulario de nombre */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">Tu nombre:</label>
             <input 
@@ -525,7 +497,6 @@ function App() {
             />
             {nameError && <div className="text-red-500 text-xs mt-1">Debes ingresar tu nombre</div>}
           </div>
-          
           <h3 className="font-bold mb-2">Selecciona tu equipo:</h3>
           <div className="grid grid-cols-2 gap-2">
             {(data.sessions[sessionCode]?.teams || defaultTeams).map(t => (
@@ -539,8 +510,6 @@ function App() {
               </button>
             ))}
           </div>
-          
-          {/* Instrucciones */}
           <div className="mt-4 text-sm text-gray-600">
             <p>1. Ingresa tu nombre</p>
             <p>2. Selecciona un equipo para comenzar</p>
@@ -581,7 +550,6 @@ function App() {
   );
 }
 
-// Animación de confeti
 function Confetti() {
   useEffect(() => {
     const canvas = document.createElement('canvas');
@@ -610,3 +578,8 @@ function Confetti() {
   },[]);
   return null;
 }
+
+ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
