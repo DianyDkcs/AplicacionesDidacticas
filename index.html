@@ -1,6 +1,4 @@
-# Actualizar el código para eliminar cualquier solicitud de correo electrónico
-
-html_content = '''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -350,7 +348,7 @@ html_content = '''<!DOCTYPE html>
 <body>
     <div class="container">
         <h1>Juego de Estadística para Veterinaria y Zootecnia</h1>
-        
+
         <!-- Pantalla de inicio de sesión -->
         <div id="login-container" class="login-container active">
             <h2>Iniciar Sesión</h2>
@@ -378,11 +376,11 @@ html_content = '''<!DOCTYPE html>
                 <button id="login-btn">Ingresar</button>
             </div>
         </div>
-        
+
         <!-- Panel de administrador -->
         <div id="admin-panel" class="admin-panel">
             <h2>Panel de Administrador</h2>
-            
+
             <div class="tab-container">
                 <div class="tab-buttons">
                     <button class="tab-button active" data-tab="session-tab">Sesión</button>
@@ -390,7 +388,7 @@ html_content = '''<!DOCTYPE html>
                     <button class="tab-button" data-tab="progress-tab">Progreso</button>
                     <button class="tab-button" data-tab="results-tab">Resultados</button>
                 </div>
-                
+
                 <div class="tab-content">
                     <!-- Pestaña de Sesión -->
                     <div id="session-tab" class="tab-panel active">
@@ -411,7 +409,7 @@ html_content = '''<!DOCTYPE html>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Pestaña de Equipos -->
                     <div id="teams-tab" class="tab-panel">
                         <h3>Equipos Participantes</h3>
@@ -419,7 +417,7 @@ html_content = '''<!DOCTYPE html>
                             <!-- Los equipos se cargarán dinámicamente aquí -->
                         </div>
                     </div>
-                    
+
                     <!-- Pestaña de Progreso -->
                     <div id="progress-tab" class="tab-panel">
                         <h3>Progreso de los Equipos</h3>
@@ -427,7 +425,7 @@ html_content = '''<!DOCTYPE html>
                             <!-- El progreso de los equipos se cargará dinámicamente aquí -->
                         </div>
                     </div>
-                    
+
                     <!-- Pestaña de Resultados -->
                     <div id="results-tab" class="tab-panel">
                         <h3>Tabla de Clasificación</h3>
@@ -454,7 +452,7 @@ html_content = '''<!DOCTYPE html>
                 </div>
             </div>
         </div>
-        
+
         <!-- Selección de equipo para estudiantes -->
         <div id="team-selection" class="team-selection">
             <h2>Selecciona tu Equipo</h2>
@@ -465,7 +463,7 @@ html_content = '''<!DOCTYPE html>
                 <button id="join-team-btn" disabled>Unirse al Equipo</button>
             </div>
         </div>
-        
+
         <!-- Contenedor del juego -->
         <div id="game-container" class="game-container">
             <div class="team-info">
@@ -474,7 +472,7 @@ html_content = '''<!DOCTYPE html>
                     <div class="progress-bar" id="progress"></div>
                 </div>
             </div>
-            
+
             <div id="question-container" class="question">
                 <h3 id="question-text">Pregunta aparecerá aquí</h3>
                 <div class="image-container" id="question-image-container">
@@ -486,15 +484,15 @@ html_content = '''<!DOCTYPE html>
                 <div class="feedback" id="feedback"></div>
                 <div class="explanation" id="explanation"></div>
             </div>
-            
+
             <div class="buttons">
                 <button id="check-btn">Comprobar</button>
                 <button id="next-btn" disabled>Siguiente</button>
             </div>
-            
+
             <div class="result" id="result"></div>
         </div>
-        
+
         <!-- Pantalla de resultados finales -->
         <div id="results-container" class="results-container">
             <h2 class="results-title">¡Juego Finalizado!</h2>
@@ -510,7 +508,7 @@ html_content = '''<!DOCTYPE html>
     <script>
         // Contraseña de administrador
         const ADMIN_PASSWORD = "admin123";
-        
+
         // Simulación de base de datos para el prototipo
         const simulatedDB = {
             sessions: {
@@ -528,12 +526,12 @@ html_content = '''<!DOCTYPE html>
                 "team5": { name: "Equipo E", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 }
             }
         };
-        
+
         // Variables globales
         let sessionCode = generateSessionCode();
         let allTeamsFinished = false;
         let gameActive = false;
-        
+
         // Generar un código de sesión aleatorio
         function generateSessionCode() {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -543,7 +541,7 @@ html_content = '''<!DOCTYPE html>
             }
             return code;
         }
-        
+
         // Generar código QR
         function generateQRCode(text) {
             const qr = qrcode(0, 'M');
@@ -551,7 +549,7 @@ html_content = '''<!DOCTYPE html>
             qr.make();
             return qr.createImgTag(5);
         }
-        
+
         // Preguntas del juego
         const questions = [
             {
@@ -647,4 +645,632 @@ html_content = '''<!DOCTYPE html>
                     "No se puede determinar el efecto sin más información"
                 ],
                 correctIndex: 1,
-                explanation: "La gráfica muestra una diferencia estadísticamente significativa (p < 0.001, indicado por *
+                explanation: "La gráfica muestra una diferencia estadísticamente significativa (p < 0.001, indicado por ***) entre el grupo vacunado y el no vacunado. El porcentaje de animales enfermos es significativamente menor en el grupo vacunado, lo que indica que la vacuna reduce significativamente la enfermedad.",
+                image: "https://cdn.abacus.ai/images/80e9d2b8-9112-4bd2-aafc-683ea1a7bd5e.png"
+            },
+            {
+                question: "¿Cuándo se rechaza la hipótesis nula en un estudio sobre el efecto de un suplemento en la producción de leche?",
+                options: [
+                    "Cuando el valor p es mayor que el nivel de significancia",
+                    "Cuando el valor p es menor que el nivel de significancia",
+                    "Cuando el valor p es igual a 0.5",
+                    "Cuando el estadístico de prueba está dentro de la región de aceptación"
+                ],
+                correctIndex: 1,
+                explanation: "Se rechaza la hipótesis nula cuando el valor p es menor que el nivel de significancia (α) establecido. Esto indica que es poco probable que los resultados observados se deban al azar si la hipótesis nula fuera cierta.",
+                image: "https://cdn.abacus.ai/images/22d8cb1a-78ad-42de-8027-9d498ba6368a.png"
+            },
+            {
+                question: "En un estudio sobre dos razas de ganado, se obtuvo un valor p = 0.002 al comparar su ganancia diaria de peso. ¿Qué significa esto?",
+                options: [
+                    "Las razas son 0.2% diferentes en su ganancia de peso",
+                    "Hay un 0.2% de probabilidad de que las razas sean iguales",
+                    "Hay un 0.2% de probabilidad de obtener estos resultados (o más extremos) si no hubiera diferencia entre las razas",
+                    "La diferencia entre las razas es de 0.002 kg por día"
+                ],
+                correctIndex: 2,
+                explanation: "Un valor p de 0.002 significa que hay un 0.2% de probabilidad de obtener estos resultados (o más extremos) si la hipótesis nula fuera cierta (si no hubiera diferencia real entre las razas). Este valor p tan pequeño proporciona fuerte evidencia contra la hipótesis nula, sugiriendo que realmente existe una diferencia en la ganancia de peso entre las dos razas.",
+                image: null
+            }
+        ];
+
+        // Variables del juego
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedOptionIndex = null;
+        let answeredQuestions = 0;
+        let currentTeam = null;
+
+        // Elementos del DOM
+        const loginContainer = document.getElementById('login-container');
+        const adminPanel = document.getElementById('admin-panel');
+        const teamSelection = document.getElementById('team-selection');
+        const gameContainer = document.getElementById('game-container');
+        const resultsContainer = document.getElementById('results-container');
+
+        const userTypeSelect = document.getElementById('user-type');
+        const adminLoginFields = document.getElementById('admin-login-fields');
+        const studentLoginFields = document.getElementById('student-login-fields');
+        const loginBtn = document.getElementById('login-btn');
+
+        const sessionIdElement = document.getElementById('session-id');
+        const qrcodeElement = document.getElementById('qrcode');
+        const printQrBtn = document.getElementById('print-qr-btn');
+        const startSessionBtn = document.getElementById('start-session-btn');
+        const pauseSessionBtn = document.getElementById('pause-session-btn');
+        const endSessionBtn = document.getElementById('end-session-btn');
+
+        const teamsListElement = document.getElementById('teams-list');
+        const studentTeamsGrid = document.getElementById('student-teams-grid');
+        const joinTeamBtn = document.getElementById('join-team-btn');
+
+        const teamsProgressElement = document.getElementById('teams-progress');
+        const leaderboardBody = document.getElementById('leaderboard-body');
+        const showFinalResultsBtn = document.getElementById('show-final-results-btn');
+
+        const currentTeamNameElement = document.getElementById('current-team-name');
+        const questionText = document.getElementById('question-text');
+        const questionImageContainer = document.getElementById('question-image-container');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackElement = document.getElementById('feedback');
+        const explanationElement = document.getElementById('explanation');
+        const checkButton = document.getElementById('check-btn');
+        const nextButton = document.getElementById('next-btn');
+        const resultElement = document.getElementById('result');
+        const progressBar = document.getElementById('progress');
+
+        const finalResultsElement = document.getElementById('final-results');
+        const newGameBtn = document.getElementById('new-game-btn');
+
+        // Cambiar entre tipos de usuario
+        userTypeSelect.addEventListener('change', function() {
+            if (this.value === 'admin') {
+                adminLoginFields.style.display = 'block';
+                studentLoginFields.style.display = 'none';
+            } else {
+                adminLoginFields.style.display = 'none';
+                studentLoginFields.style.display = 'block';
+            }
+        });
+
+        // Iniciar sesión
+        loginBtn.addEventListener('click', function() {
+            const userType = userTypeSelect.value;
+
+            if (userType === 'admin') {
+                const password = document.getElementById('admin-password').value;
+
+                if (password === ADMIN_PASSWORD) {
+                    loginContainer.classList.remove('active');
+                    adminPanel.classList.add('active');
+
+                    // Mostrar código de sesión y QR
+                    sessionIdElement.textContent = sessionCode;
+                    const gameUrl = window.location.href.split('?')[0] + '?session=' + sessionCode;
+                    qrcodeElement.innerHTML = generateQRCode(gameUrl);
+
+                    // Cargar equipos
+                    loadTeams();
+                    updateLeaderboard();
+                } else {
+                    alert('Contraseña incorrecta. Inténtelo de nuevo.');
+                }
+
+            } else {
+                const code = document.getElementById('session-code').value;
+
+                // En un sistema real, aquí se verificaría el código de sesión
+                // Para el prototipo, simplemente permitimos el acceso
+                loginContainer.classList.remove('active');
+                teamSelection.classList.add('active');
+
+                // Cargar equipos para selección
+                loadTeamsForSelection();
+            }
+        });
+
+        // Imprimir código QR
+        printQrBtn.addEventListener('click', function() {
+            window.print();
+        });
+
+        // Cambiar entre pestañas del panel de administrador
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Desactivar todas las pestañas
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+
+                // Activar la pestaña seleccionada
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+
+                // Actualizar contenido de la pestaña
+                if (tabId === 'progress-tab') {
+                    updateTeamsProgress();
+                } else if (tabId === 'results-tab') {
+                    updateLeaderboard();
+                }
+            });
+        });
+
+        // Unirse a un equipo
+        joinTeamBtn.addEventListener('click', function() {
+            teamSelection.classList.remove('active');
+            gameContainer.classList.add('active');
+
+            // Incrementar el contador de miembros del equipo
+            simulatedDB.teams[currentTeam].members++;
+
+            currentTeamNameElement.textContent = simulatedDB.teams[currentTeam].name;
+            startGame();
+        });
+
+        // Calcular promedio del equipo
+        function calculateTeamAverage(team) {
+            if (team.members === 0 || team.questionsAnswered === 0) return 0;
+
+            // Promedio de respuestas correctas por miembro
+            return (team.correctAnswers / team.members).toFixed(2);
+        }
+
+        // Cargar equipos para el panel de administrador
+        function loadTeams() {
+            teamsListElement.innerHTML = '';
+
+            for (const teamId in simulatedDB.teams) {
+                const team = simulatedDB.teams[teamId];
+                const average = calculateTeamAverage(team);
+
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+                teamCard.innerHTML = `
+                    <div class="team-name">${team.name}</div>
+                    <div class="team-stats">
+                        <div>Integrantes: ${team.members}</div>
+                        <div class="team-average">Promedio: ${average}</div>
+                    </div>
+                    <div class="team-score">Puntuación: ${team.score}</div>
+                `;
+
+                teamsListElement.appendChild(teamCard);
+            }
+        }
+
+        // Cargar equipos para selección de estudiantes
+        function loadTeamsForSelection() {
+            studentTeamsGrid.innerHTML = '';
+
+            for (const teamId in simulatedDB.teams) {
+                const team = simulatedDB.teams[teamId];
+
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+                teamCard.setAttribute('data-team-id', teamId);
+                teamCard.innerHTML = `
+                    <div class="team-name">${team.name}</div>
+                    <div>Integrantes: ${team.members}</div>
+                `;
+
+                teamCard.addEventListener('click', function() {
+                    // Desmarcar todos los equipos
+                    document.querySelectorAll('.team-card').forEach(card => {
+                        card.classList.remove('selected-team');
+                    });
+
+                    // Marcar el equipo seleccionado
+                    this.classList.add('selected-team');
+                    currentTeam = this.getAttribute('data-team-id');
+
+                    // Habilitar botón de unirse
+                    joinTeamBtn.disabled = false;
+                });
+
+                studentTeamsGrid.appendChild(teamCard);
+            }
+        }
+
+        // Actualizar progreso de los equipos
+        function updateTeamsProgress() {
+            teamsProgressElement.innerHTML = '';
+
+            for (const teamId in simulatedDB.teams) {
+                const team = simulatedDB.teams[teamId];
+                const progress = team.questionsAnswered / questions.length * 100;
+                const average = calculateTeamAverage(team);
+
+                const teamProgressElement = document.createElement('div');
+                teamProgressElement.className = 'team-progress';
+                teamProgressElement.innerHTML = `
+                    <div class="team-name">${team.name}</div>
+                    <div class="team-stats">
+                        <div>Integrantes: ${team.members}</div>
+                        <div class="team-average">Promedio: ${average}</div>
+                    </div>
+                    <div>Preguntas respondidas: ${team.questionsAnswered} de ${questions.length}</div>
+                    <div>Respuestas correctas: ${team.correctAnswers}</div>
+                    <div class="progress">
+                        <div class="progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                `;
+
+                teamsProgressElement.appendChild(teamProgressElement);
+            }
+
+            // Verificar si todos los equipos han terminado
+            checkAllTeamsFinished();
+        }
+
+        // Verificar si todos los equipos han terminado
+        function checkAllTeamsFinished() {
+            if (allTeamsFinished) return;
+
+            let allFinished = true;
+            let activeTeams = 0;
+
+            for (const teamId in simulatedDB.teams) {
+                const team = simulatedDB.teams[teamId];
+                if (team.members > 0) {
+                    activeTeams++;
+                    if (team.questionsAnswered < questions.length) {
+                        allFinished = false;
+                    }
+                }
+            }
+
+            // Si no hay equipos activos, no hacemos nada
+            if (activeTeams === 0) return;
+
+            // Si todos los equipos activos han terminado, mostrar resultados
+            if (allFinished) {
+                allTeamsFinished = true;
+                showFinalResults();
+            }
+        }
+
+        // Actualizar tabla de clasificación
+        function updateLeaderboard() {
+            // Ordenar equipos por puntuación
+            const sortedTeams = Object.entries(simulatedDB.teams)
+                .map(([id, team]) => ({ id, ...team }))
+                .sort((a, b) => b.score - a.score);
+
+            leaderboardBody.innerHTML = '';
+
+            sortedTeams.forEach((team, index) => {
+                const average = calculateTeamAverage(team);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${team.name}</td>
+                    <td>${team.members}</td>
+                    <td>${team.questionsAnswered}</td>
+                    <td>${team.correctAnswers}</td>
+                    <td>${average}</td>
+                    <td>${team.score}</td>
+                `;
+
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // Iniciar el juego
+        function startGame() {
+            gameActive = true;
+            currentQuestionIndex = 0;
+            score = 0;
+            answeredQuestions = 0;
+            loadQuestion();
+        }
+
+        // Cargar pregunta actual
+        function loadQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+
+            // Actualizar texto de la pregunta
+            questionText.textContent = currentQuestion.question;
+
+            // Limpiar opciones anteriores
+            optionsContainer.innerHTML = '';
+
+            // Cargar imagen si existe
+            if (currentQuestion.image) {
+                questionImageContainer.innerHTML = `<img src="${currentQuestion.image}" alt="Imagen de la pregunta">`;
+                questionImageContainer.style.display = 'block';
+            } else {
+                questionImageContainer.style.display = 'none';
+            }
+
+            // Crear opciones
+            currentQuestion.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+
+                optionElement.addEventListener('click', () => {
+                    // Desmarcar opción previamente seleccionada
+                    document.querySelectorAll('.option').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+
+                    // Marcar nueva opción seleccionada
+                    optionElement.classList.add('selected');
+                    selectedOptionIndex = index;
+
+                    // Habilitar botón de comprobar
+                    checkButton.disabled = false;
+                });
+
+                optionsContainer.appendChild(optionElement);
+            });
+
+            // Reiniciar estado
+            selectedOptionIndex = null;
+            feedbackElement.style.display = 'none';
+            explanationElement.style.display = 'none';
+            checkButton.disabled = true;
+            nextButton.disabled = true;
+
+            // Actualizar barra de progreso
+            updateProgressBar();
+        }
+
+        // Comprobar respuesta
+        function checkAnswer() {
+            const currentQuestion = questions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+
+            // Marcar respuesta correcta e incorrecta
+            options.forEach((option, index) => {
+                if (index === currentQuestion.correctIndex) {
+                    option.classList.add('correct');
+                } else if (index === selectedOptionIndex) {
+                    option.classList.add('incorrect');
+                }
+            });
+
+            // Mostrar retroalimentación
+            if (selectedOptionIndex === currentQuestion.correctIndex) {
+                feedbackElement.textContent = '¡Correcto! 👍';
+                feedbackElement.style.backgroundColor = '#2ecc71';
+                score++;
+
+                // Actualizar puntuación del equipo
+                if (currentTeam) {
+                    simulatedDB.teams[currentTeam].score += 10;
+                    simulatedDB.teams[currentTeam].correctAnswers++;
+                }
+            } else {
+                feedbackElement.textContent = '¡Incorrecto! La respuesta correcta está marcada en verde.';
+                feedbackElement.style.backgroundColor = '#e74c3c';
+            }
+
+            // Mostrar explicación
+            explanationElement.textContent = currentQuestion.explanation;
+
+            // Mostrar elementos
+            feedbackElement.style.display = 'block';
+            explanationElement.style.display = 'block';
+
+            // Actualizar botones
+            checkButton.disabled = true;
+            nextButton.disabled = false;
+
+            // Actualizar contador de preguntas respondidas
+            answeredQuestions++;
+
+            // Actualizar estadísticas del equipo
+            if (currentTeam) {
+                simulatedDB.teams[currentTeam].questionsAnswered++;
+
+                // En un sistema real, aquí se sincronizaría con Firebase
+                updateTeamsProgress();
+                updateLeaderboard();
+            }
+
+            // Verificar si es la última pregunta
+            if (currentQuestionIndex === questions.length - 1) {
+                nextButton.textContent = 'Ver Resultado';
+            }
+        }
+
+        // Pasar a la siguiente pregunta
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // Mostrar resultado final
+        function showResult() {
+            const percentage = Math.round((score / questions.length) * 100);
+
+            // Ocultar contenedor de preguntas
+            document.getElementById('question-container').style.display = 'none';
+
+            // Mostrar resultado
+            resultElement.innerHTML = `
+                <h2>Resultado Final</h2>
+                <p>Tu equipo ha acertado ${score} de ${questions.length} preguntas (${percentage}%)</p>
+                <button id="exit-btn">Volver al Inicio</button>
+            `;
+
+            // Ocultar botones
+            document.querySelector('.buttons').style.display = 'none';
+
+            // Evento para salir
+            document.getElementById('exit-btn').addEventListener('click', () => {
+                gameContainer.classList.remove('active');
+                loginContainer.classList.add('active');
+
+                // Limpiar resultado
+                resultElement.innerHTML = '';
+
+                // Mostrar contenedor de preguntas para la próxima vez
+                document.getElementById('question-container').style.display = 'block';
+
+                // Mostrar botones para la próxima vez
+                document.querySelector('.buttons').style.display = 'block';
+
+                // Reiniciar botón de siguiente
+                nextButton.textContent = 'Siguiente';
+            });
+        }
+
+        // Actualizar barra de progreso
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Mostrar resultados finales
+        function showFinalResults() {
+            // Ordenar equipos por puntuación
+            const sortedTeams = Object.entries(simulatedDB.teams)
+                .filter(([_, team]) => team.members > 0) // Solo equipos con miembros
+                .map(([id, team]) => ({ id, ...team }))
+                .sort((a, b) => b.score - a.score);
+
+            finalResultsElement.innerHTML = '';
+
+            sortedTeams.forEach((team, index) => {
+                const positionClass = index === 0 ? 'first' : (index === 1 ? 'second' : (index === 2 ? 'third' : ''));
+                const average = calculateTeamAverage(team);
+
+                const teamResultCard = document.createElement('div');
+                teamResultCard.className = 'team-result-card';
+                teamResultCard.innerHTML = `
+                    <div class="team-position ${positionClass}">${index + 1}</div>
+                    <div class="team-result-name">${team.name}</div>
+                    <div class="team-result-details">
+                        <div>Integrantes: ${team.members}</div>
+                        <div>Preguntas: ${team.questionsAnswered}/${questions.length}</div>
+                        <div>Correctas: ${team.correctAnswers}</div>
+                        <div>Promedio: ${average}</div>
+                    </div>
+                    <div class="team-result-score">${team.score} pts</div>
+                `;
+
+                finalResultsElement.appendChild(teamResultCard);
+            });
+
+            // Mostrar pantalla de resultados
+            if (gameActive) {
+                hideAllScreens();
+                resultsContainer.classList.add('active');
+                createConfetti();
+            }
+        }
+
+        // Crear efecto de confeti
+        function createConfetti() {
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
+
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                confetti.style.animationDelay = Math.random() * 5 + 's';
+
+                document.body.appendChild(confetti);
+
+                // Eliminar confeti después de la animación
+                setTimeout(() => {
+                    confetti.remove();
+                }, 8000);
+            }
+        }
+
+        // Ocultar todas las pantallas
+        function hideAllScreens() {
+            loginContainer.classList.remove('active');
+            adminPanel.classList.remove('active');
+            teamSelection.classList.remove('active');
+            gameContainer.classList.remove('active');
+            resultsContainer.classList.remove('active');
+        }
+
+        // Eventos de los botones del juego
+        checkButton.addEventListener('click', checkAnswer);
+        nextButton.addEventListener('click', nextQuestion);
+
+        // Eventos de los botones de sesión
+        startSessionBtn.addEventListener('click', function() {
+            gameActive = true;
+            alert('Sesión iniciada. Los estudiantes pueden unirse ahora.');
+        });
+
+        pauseSessionBtn.addEventListener('click', function() {
+            alert('Sesión pausada. Los estudiantes no podrán avanzar hasta que se reanude.');
+        });
+
+        endSessionBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de finalizar la sesión? Esto mostrará los resultados finales.')) {
+                gameActive = false;
+                showFinalResults();
+            }
+        });
+
+        // Mostrar resultados finales (botón en panel de administrador)
+        showFinalResultsBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de mostrar los resultados finales? Esto finalizará el juego para todos los equipos.')) {
+                gameActive = false;
+                showFinalResults();
+            }
+        });
+
+        // Nuevo juego
+        newGameBtn.addEventListener('click', function() {
+            // Reiniciar estadísticas de equipos
+            for (const teamId in simulatedDB.teams) {
+                simulatedDB.teams[teamId].score = 0;
+                simulatedDB.teams[teamId].questionsAnswered = 0;
+                simulatedDB.teams[teamId].correctAnswers = 0;
+            }
+
+            // Generar nuevo código de sesión
+            sessionCode = generateSessionCode();
+            sessionIdElement.textContent = sessionCode;
+            const gameUrl = window.location.href.split('?')[0] + '?session=' + sessionCode;
+            qrcodeElement.innerHTML = generateQRCode(gameUrl);
+
+            // Reiniciar variables
+            allTeamsFinished = false;
+            gameActive = true;
+
+            // Actualizar interfaz
+            loadTeams();
+            updateLeaderboard();
+            updateTeamsProgress();
+
+            // Volver al panel de administrador
+            hideAllScreens();
+            adminPanel.classList.add('active');
+        });
+
+        // Verificar si hay un código de sesión en la URL (para estudiantes que acceden por QR)
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionFromUrl = urlParams.get('session');
+
+        if (sessionFromUrl) {
+            userTypeSelect.value = 'student';
+            userTypeSelect.dispatchEvent(new Event('change'));
+            document.getElementById('session-code').value = sessionFromUrl;
+        }
+    </script>
+</body>
+</html>
