@@ -1,1276 +1,380 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Estadística - Modo Competencia</title>
-    <!-- QR Code Generator -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        }
-        h1, h2, h3 {
-            color: #2c3e50;
-            text-align: center;
-        }
-        .login-container, .admin-panel, .team-selection, .game-container, .results-container {
-            display: none;
-        }
-        .active {
-            display: block;
-        }
-        .question {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #eaf2f8;
-            border-radius: 5px;
-        }
-        .options {
-            margin-top: 10px;
-        }
-        .option {
-            margin: 5px 0;
-            padding: 10px;
-            background-color: #d4e6f1;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .option:hover {
-            background-color: #a9cce3;
-        }
-        .selected {
-            background-color: #3498db;
-            color: white;
-        }
-        .correct {
-            background-color: #2ecc71;
-            color: white;
-        }
-        .incorrect {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .feedback {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 5px;
-            display: none;
-        }
-        .buttons {
-            margin-top: 20px;
-            text-align: center;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 0 5px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        button:disabled {
-            background-color: #95a5a6;
-            cursor: not-allowed;
-        }
-        .result {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        .progress {
-            margin-top: 20px;
-            height: 20px;
-            background-color: #ecf0f1;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: #3498db;
-            width: 0%;
-            transition: width 0.5s;
-        }
-        .explanation {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f9e79f;
-            border-radius: 5px;
-            display: none;
-        }
-        .image-container {
-            text-align: center;
-            margin: 15px 0;
-        }
-        .image-container img {
-            max-width: 100%;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        }
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .team-card {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .team-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .team-card.selected-team {
-            border: 3px solid #3498db;
-        }
-        .team-name {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        .team-score {
-            font-size: 1.2em;
-            color: #2c3e50;
-        }
-        .admin-controls {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #eaf2f8;
-            border-radius: 5px;
-        }
-        .team-progress {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-        }
-        .qr-container {
-            text-align: center;
-            margin: 20px 0;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        .tab-container {
-            margin-top: 20px;
-        }
-        .tab-buttons {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-        }
-        .tab-button {
-            padding: 10px 20px;
-            background-color: #f5f5f5;
-            border: none;
-            border-radius: 5px 5px 0 0;
-            cursor: pointer;
-        }
-        .tab-button.active {
-            background-color: #3498db;
-            color: white;
-        }
-        .tab-content {
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 0 0 5px 5px;
-        }
-        .tab-panel {
-            display: none;
-        }
-        .tab-panel.active {
-            display: block;
-        }
-        .leaderboard {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .leaderboard th, .leaderboard td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .leaderboard th {
-            background-color: #3498db;
-            color: white;
-        }
-        .leaderboard tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .leaderboard tr:hover {
-            background-color: #e5e5e5;
-        }
-        .results-container {
-            text-align: center;
-            padding: 20px;
-        }
-        .results-title {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-        .team-results {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .team-result-card {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .team-position {
-            font-size: 24px;
-            font-weight: bold;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: #3498db;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .team-position.first {
-            background-color: gold;
-            color: #333;
-        }
-        .team-position.second {
-            background-color: silver;
-            color: #333;
-        }
-        .team-position.third {
-            background-color: #cd7f32;
-            color: white;
-        }
-        .team-result-name {
-            font-weight: bold;
-            font-size: 18px;
-        }
-        .team-result-score {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            animation: confetti-fall 5s ease-in-out infinite;
-            z-index: 1000;
-        }
-        @keyframes confetti-fall {
-            0% {
-                transform: translateY(-100vh) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
-        .qr-code-display {
-            text-align: center;
-            margin: 20px 0;
-        }
-        .qr-code-display img {
-            max-width: 250px;
-            margin: 0 auto;
-        }
-        .team-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 5px;
-        }
-        .team-average {
-            font-weight: bold;
-            color: #2980b9;
-        }
-        .print-qr {
-            margin-top: 10px;
-        }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .qr-container, .qr-container * {
-                visibility: visible;
-            }
-            .qr-container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Juego de Estadística para Veterinaria y Zootecnia</h1>
+// Juego de Estadística Profesional - Flujo Completo
+// Simula multiusuario y persistencia local
+const { useState, useEffect } = React;
 
-        <!-- Pantalla de inicio de sesión -->
-        <div id="login-container" class="login-container active">
-            <h2>Iniciar Sesión</h2>
-            <div class="input-group">
-                <label for="user-type">Seleccione su rol:</label>
-                <select id="user-type">
-                    <option value="admin">Administrador</option>
-                    <option value="student">Estudiante</option>
-                </select>
+// Utilidades
+function generateSessionCode() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
+
+function getInitialData() {
+  // Carga de localStorage o valores por defecto
+  const data = localStorage.getItem("estadisticaGameData");
+  if (data) return JSON.parse(data);
+  return {
+    sessions: {},
+    adminPassword: "admin123",
+    theme: "light"
+  };
+}
+
+function saveData(data) {
+  localStorage.setItem("estadisticaGameData", JSON.stringify(data));
+}
+
+const defaultTeams = [
+  { id: "A", name: "Equipo A", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
+  { id: "B", name: "Equipo B", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
+  { id: "C", name: "Equipo C", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
+  { id: "D", name: "Equipo D", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
+  { id: "E", name: "Equipo E", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 }
+];
+
+const questions = [
+  {
+    question: "¿Qué representa el valor p en un estudio sobre la eficacia de un nuevo antibiótico?",
+    options: [
+      "La probabilidad de que el antibiótico sea efectivo",
+      "La probabilidad de obtener los resultados observados si el antibiótico no tiene efecto",
+      "El porcentaje de vacas que se curaron",
+      "El nivel de significancia"
+    ],
+    correctIndex: 1,
+    explanation: "El valor p representa la probabilidad de obtener los resultados observados (o más extremos) si la hipótesis nula fuera cierta."
+  },
+  {
+    question: "En un estudio sobre el efecto de un suplemento alimenticio en el peso de terneros, se obtuvo un valor p de 0.03. ¿Qué significa esto?",
+    options: [
+      "El suplemento aumenta el peso en un 3%",
+      "Hay un 3% de probabilidad de que el suplemento sea efectivo",
+      "Hay un 3% de probabilidad de obtener estos resultados si el suplemento no tiene efecto",
+      "El 3% de los terneros respondieron al suplemento"
+    ],
+    correctIndex: 2,
+    explanation: "Un valor p de 0.03 significa que hay un 3% de probabilidad de obtener estos resultados si la hipótesis nula fuera cierta."
+  }
+  // ... Puedes agregar más preguntas aquí
+];
+
+function App() {
+  // Estado global
+  const [data, setData] = useState(getInitialData());
+  const [theme, setTheme] = useState(data.theme || "light");
+  const [view, setView] = useState("login"); // login, admin, student, team, game, results
+  const [role, setRole] = useState("student");
+  const [adminPass, setAdminPass] = useState("");
+  const [sessionCode, setSessionCode] = useState("");
+  const [studentName, setStudentName] = useState("");
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [studentSession, setStudentSession] = useState(null); // {code, teamId, name, answers: []}
+  const [confetti, setConfetti] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [newAdminPass, setNewAdminPass] = useState("");
+
+  // Sincronización localStorage
+  useEffect(() => {
+    saveData(data);
+  }, [data]);
+
+  useEffect(() => {
+    document.body.style.background = theme === "dark" ? "#222" : "#f5f5f5";
+  }, [theme]);
+
+  // --- LOGIN ---
+  function handleLogin() {
+    if (role === "admin") {
+      if (adminPass === data.adminPassword) {
+        setView("admin");
+        setSessionCode(data.lastSession || "");
+      } else {
+        alert("Contraseña incorrecta");
+      }
+    } else {
+      if (sessionCode.length === 6) {
+        setView("student");
+      } else {
+        alert("Código de sesión inválido");
+      }
+    }
+  }
+
+  // --- ADMIN ---
+  function handleStartSession() {
+    const code = generateSessionCode();
+    const session = {
+      code,
+      started: true,
+      finished: false,
+      teams: JSON.parse(JSON.stringify(defaultTeams)),
+      leaderboard: [],
+      questions: questions.map(q => ({ ...q })),
+      answers: {}
+    };
+    setData(d => ({ ...d, sessions: { ...d.sessions, [code]: session }, lastSession: code }));
+    setSessionCode(code);
+  }
+
+  function handleEndSession() {
+    if (!sessionCode) return;
+    setData(d => {
+      const s = { ...d.sessions[sessionCode], finished: true };
+      return { ...d, sessions: { ...d.sessions, [sessionCode]: s } };
+    });
+  }
+
+  // --- STUDENT ---
+  function handleJoinTeam(teamId) {
+    if (!studentName) return alert("Ingresa tu nombre");
+    const session = data.sessions[sessionCode];
+    if (!session) return alert("Sesión no encontrada");
+    // Evitar duplicados
+    const teams = session.teams.map(t => {
+      if (t.id === teamId && !t.members.includes(studentName)) {
+        return { ...t, members: [...t.members, studentName] };
+      }
+      if (t.members.includes(studentName)) {
+        return { ...t, members: t.members.filter(n => n !== studentName) };
+      }
+      return t;
+    });
+    setData(d => {
+      const s = { ...session, teams };
+      return { ...d, sessions: { ...d.sessions, [sessionCode]: s } };
+    });
+    setSelectedTeam(teamId);
+    setView("game");
+    setStudentSession({ code: sessionCode, teamId, name: studentName, answers: [] });
+    setCurrentQuestion(0);
+  }
+
+  // --- GAME ---
+  function handleAnswer(optionIdx) {
+    setSelectedOption(optionIdx);
+    setShowExplanation(true);
+    // Guardar respuesta
+    setStudentSession(s => {
+      const answers = [...(s.answers || [])];
+      answers[currentQuestion] = optionIdx;
+      return { ...s, answers };
+    });
+    // Actualizar score en data
+    setData(d => {
+      const session = d.sessions[sessionCode];
+      const teams = session.teams.map(t => {
+        if (t.id === selectedTeam) {
+          let correct = t.correctAnswers;
+          let score = t.score;
+          if (optionIdx === questions[currentQuestion].correctIndex) {
+            correct++;
+            score += 10;
+          }
+          return {
+            ...t,
+            questionsAnswered: t.questionsAnswered + 1,
+            correctAnswers: correct,
+            score
+          };
+        }
+        return t;
+      });
+      return {
+        ...d,
+        sessions: {
+          ...d.sessions,
+          [sessionCode]: { ...session, teams }
+        }
+      };
+    });
+  }
+
+  function handleNext() {
+    setShowExplanation(false);
+    setSelectedOption(null);
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(q => q + 1);
+    } else {
+      setView("results");
+      setConfetti(true);
+    }
+  }
+
+  // --- SETTINGS ---
+  function handleSavePassword() {
+    if (newAdminPass.length < 4) return alert("Contraseña muy corta");
+    setData(d => ({ ...d, adminPassword: newAdminPass }));
+    setNewAdminPass("");
+    alert("Contraseña cambiada");
+  }
+
+  function handleThemeChange(e) {
+    setTheme(e.target.value);
+    setData(d => ({ ...d, theme: e.target.value }));
+  }
+
+  function handleResetData() {
+    if (window.confirm("¿Seguro que quieres borrar todos los datos?")) {
+      localStorage.removeItem("estadisticaGameData");
+      window.location.reload();
+    }
+  }
+
+  // --- RENDER ---
+  return (
+    <div className={theme === "dark" ? "bg-gray-900 text-white min-h-screen" : "min-h-screen"}>
+      <h1 className="text-2xl font-bold text-center my-4">Juego de Estadística</h1>
+      {view === "login" && (
+        <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
+          <label>Rol:
+            <select value={role} onChange={e => setRole(e.target.value)} className="ml-2">
+              <option value="admin">Administrador</option>
+              <option value="student">Estudiante</option>
+            </select>
+          </label>
+          {role === "admin" ? (
+            <div className="mt-4">
+              <input type="password" placeholder="Contraseña admin" value={adminPass} onChange={e => setAdminPass(e.target.value)} className="w-full p-2 border rounded" />
             </div>
-            <div id="admin-login-fields">
-                <div class="input-group">
-                    <label for="admin-password">Contraseña de administrador:</label>
-                    <input type="password" id="admin-password" placeholder="Ingrese la contraseña">
-                </div>
-            </div>
-            <div id="student-login-fields" style="display: none;">
-                <p>Escanea el código QR proporcionado por tu profesor o ingresa el código de la sesión:</p>
-                <div class="input-group">
-                    <label for="session-code">Código de sesión:</label>
-                    <input type="text" id="session-code" placeholder="Ingresa el código de 6 dígitos">
-                </div>
-            </div>
-            <div class="buttons">
-                <button id="login-btn">Ingresar</button>
-            </div>
+          ) : (
+            <>
+              <div className="mt-4">
+                <input type="text" placeholder="Código de sesión" value={sessionCode} onChange={e => setSessionCode(e.target.value.toUpperCase())} className="w-full p-2 border rounded" maxLength={6} />
+              </div>
+              <div className="mt-4">
+                <input type="text" placeholder="Tu nombre" value={studentName} onChange={e => setStudentName(e.target.value)} className="w-full p-2 border rounded" />
+              </div>
+            </>
+          )}
+          <button className="mt-4 w-full bg-blue-600 text-white p-2 rounded" onClick={handleLogin}>Ingresar</button>
         </div>
-
-        <!-- Panel de administrador -->
-        <div id="admin-panel" class="admin-panel">
-            <h2>Panel de Administrador</h2>
-
-            <div class="tab-container">
-                <div class="tab-buttons">
-                    <button class="tab-button active" data-tab="session-tab">Sesión</button>
-                    <button class="tab-button" data-tab="teams-tab">Equipos</button>
-                    <button class="tab-button" data-tab="progress-tab">Progreso</button>
-                    <button class="tab-button" data-tab="results-tab">Resultados</button>
+      )}
+      {view === "admin" && (
+        <div className="max-w-2xl mx-auto bg-white p-6 rounded shadow">
+          <h2 className="text-xl font-bold mb-2">Panel de Administrador</h2>
+          <div className="mb-2">Código de sesión: <span className="font-mono text-lg">{sessionCode || "-"}</span></div>
+          <button className="bg-green-600 text-white p-2 rounded mr-2" onClick={handleStartSession}>Iniciar juego</button>
+          <button className="bg-red-600 text-white p-2 rounded" onClick={handleEndSession}>Finalizar sesión</button>
+          <div className="mt-4">
+            <h3 className="font-bold">Equipos</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {(data.sessions[sessionCode]?.teams || defaultTeams).map(t => (
+                <div key={t.id} className="border rounded p-2">
+                  <div className="font-bold">{t.name}</div>
+                  <div>Integrantes: {t.members.length}</div>
+                  <div>Puntos: {t.score}</div>
                 </div>
-
-                <div class="tab-content">
-                    <!-- Pestaña de Sesión -->
-                    <div id="session-tab" class="tab-panel active">
-                        <h3>Información de la Sesión</h3>
-                        <div class="session-info">
-                            <p>Código de sesión: <span id="session-id">Generando...</span></p>
-                            <div class="qr-container">
-                                <h4>Código QR para acceso de estudiantes</h4>
-                                <div id="qrcode"></div>
-                                <p>Los estudiantes pueden escanear este código QR o ingresar el código de sesión manualmente.</p>
-                                <button id="print-qr-btn" class="print-qr">Imprimir Código QR</button>
-                            </div>
-                            <div class="admin-controls">
-                                <h4>Controles de Sesión</h4>
-                                <button id="start-session-btn">Iniciar Sesión</button>
-                                <button id="pause-session-btn">Pausar Sesión</button>
-                                <button id="end-session-btn">Finalizar Sesión</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pestaña de Equipos -->
-                    <div id="teams-tab" class="tab-panel">
-                        <h3>Equipos Participantes</h3>
-                        <div id="teams-list" class="team-grid">
-                            <!-- Los equipos se cargarán dinámicamente aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Pestaña de Progreso -->
-                    <div id="progress-tab" class="tab-panel">
-                        <h3>Progreso de los Equipos</h3>
-                        <div id="teams-progress">
-                            <!-- El progreso de los equipos se cargará dinámicamente aquí -->
-                        </div>
-                    </div>
-
-                    <!-- Pestaña de Resultados -->
-                    <div id="results-tab" class="tab-panel">
-                        <h3>Tabla de Clasificación</h3>
-                        <table class="leaderboard">
-                            <thead>
-                                <tr>
-                                    <th>Posición</th>
-                                    <th>Equipo</th>
-                                    <th>Integrantes</th>
-                                    <th>Preguntas</th>
-                                    <th>Correctas</th>
-                                    <th>Promedio</th>
-                                    <th>Puntuación</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-body">
-                                <!-- Los resultados se cargarán dinámicamente aquí -->
-                            </tbody>
-                        </table>
-                        <div class="buttons" style="margin-top: 30px;">
-                            <button id="show-final-results-btn">Mostrar Resultados Finales</button>
-                        </div>
-                    </div>
-                </div>
+              ))}
             </div>
+          </div>
+          <div className="mt-4">
+            <h3 className="font-bold">Clasificación</h3>
+            <table className="w-full text-sm">
+              <thead><tr><th>Equipo</th><th>Puntos</th><th>Correctas</th></tr></thead>
+              <tbody>
+                {(data.sessions[sessionCode]?.teams || defaultTeams)
+                  .slice().sort((a,b)=>b.score-a.score)
+                  .map(t => (
+                  <tr key={t.id}><td>{t.name}</td><td>{t.score}</td><td>{t.correctAnswers}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4">
+            <button className="bg-gray-700 text-white p-2 rounded" onClick={()=>setShowSettings(s=>!s)}>Configuración</button>
+            {showSettings && (
+              <div className="mt-2 p-2 border rounded">
+                <div>
+                  <input type="password" placeholder="Nueva contraseña admin" value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} className="w-full p-2 border rounded" />
+                  <button className="bg-blue-600 text-white p-2 rounded mt-2" onClick={handleSavePassword}>Guardar contraseña</button>
+                </div>
+                <div className="mt-2">
+                  <label>Tema: </label>
+                  <select value={theme} onChange={handleThemeChange}>
+                    <option value="light">Claro</option>
+                    <option value="dark">Oscuro</option>
+                  </select>
+                </div>
+                <button className="bg-red-600 text-white p-2 rounded mt-2" onClick={handleResetData}>Reiniciar datos</button>
+              </div>
+            )}
+          </div>
         </div>
-
-        <!-- Selección de equipo para estudiantes -->
-        <div id="team-selection" class="team-selection">
-            <h2>Selecciona tu Equipo</h2>
-            <div id="student-teams-grid" class="team-grid">
-                <!-- Los equipos se cargarán dinámicamente aquí -->
-            </div>
-            <div class="buttons">
-                <button id="join-team-btn" disabled>Unirse al Equipo</button>
-            </div>
+      )}
+      {view === "student" && (
+        <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
+          <h2 className="text-xl font-bold mb-2">Selecciona tu equipo</h2>
+          <div className="grid grid-cols-2 gap-2">
+            {(data.sessions[sessionCode]?.teams || defaultTeams).map(t => (
+              <button key={t.id} className={"border rounded p-2 " + (selectedTeam===t.id?"bg-blue-200":"")} onClick={()=>handleJoinTeam(t.id)}>{t.name} ({t.members.length} integrantes)</button>
+            ))}
+          </div>
         </div>
-
-        <!-- Contenedor del juego -->
-        <div id="game-container" class="game-container">
-            <div class="team-info">
-                <h3>Equipo: <span id="current-team-name">-</span></h3>
-                <div class="progress">
-                    <div class="progress-bar" id="progress"></div>
-                </div>
+      )}
+      {view === "game" && (
+        <div className="max-w-lg mx-auto bg-white p-6 rounded shadow">
+          <h2 className="font-bold mb-2">Pregunta {currentQuestion+1} de {questions.length}</h2>
+          <div className="mb-2 font-bold">{questions[currentQuestion].question}</div>
+          <div className="grid grid-cols-1 gap-2">
+            {questions[currentQuestion].options.map((opt, idx) => (
+              <button key={idx} className={"border rounded p-2 text-left " + (selectedOption===idx?"bg-blue-200":"")} disabled={selectedOption!==null} onClick={()=>handleAnswer(idx)}>{opt}</button>
+            ))}
+          </div>
+          {showExplanation && (
+            <div className={selectedOption===questions[currentQuestion].correctIndex?"text-green-700 mt-2":"text-red-700 mt-2"}>
+              {selectedOption===questions[currentQuestion].correctIndex?"¡Correcto!":"Incorrecto."} <br/>
+              <span className="text-sm">{questions[currentQuestion].explanation}</span>
             </div>
-
-            <div id="question-container" class="question">
-                <h3 id="question-text">Pregunta aparecerá aquí</h3>
-                <div class="image-container" id="question-image-container">
-                    <!-- La imagen se insertará aquí si es necesario -->
-                </div>
-                <div class="options" id="options-container">
-                    <!-- Las opciones se insertarán aquí -->
-                </div>
-                <div class="feedback" id="feedback"></div>
-                <div class="explanation" id="explanation"></div>
-            </div>
-
-            <div class="buttons">
-                <button id="check-btn">Comprobar</button>
-                <button id="next-btn" disabled>Siguiente</button>
-            </div>
-
-            <div class="result" id="result"></div>
+          )}
+          <div className="w-full bg-gray-200 rounded h-3 mt-4">
+            <div className="bg-blue-600 h-3 rounded" style={{width:((currentQuestion+1)/questions.length*100)+"%"}}></div>
+          </div>
+          {showExplanation && <button className="mt-4 bg-blue-600 text-white p-2 rounded" onClick={handleNext}>{currentQuestion<questions.length-1?"Siguiente":"Ver resultado"}</button>}
         </div>
-
-        <!-- Pantalla de resultados finales -->
-        <div id="results-container" class="results-container">
-            <h2 class="results-title">¡Juego Finalizado!</h2>
-            <div id="final-results" class="team-results">
-                <!-- Los resultados finales se cargarán dinámicamente aquí -->
-            </div>
-            <div class="buttons">
-                <button id="new-game-btn">Nuevo Juego</button>
-            </div>
+      )}
+      {view === "results" && (
+        <div className="max-w-lg mx-auto bg-white p-6 rounded shadow text-center">
+          <h2 className="text-2xl font-bold mb-2">¡Juego finalizado!</h2>
+          <div className="mb-2">Gracias por participar, <span className="font-bold">{studentName}</span> del <span className="font-bold">{defaultTeams.find(t=>t.id===selectedTeam)?.name}</span>.</div>
+          <div className="mb-2">Puntaje: <span className="font-bold">{data.sessions[sessionCode]?.teams.find(t=>t.id===selectedTeam)?.score || 0}</span></div>
+          {confetti && <Confetti />}
+          <button className="mt-4 bg-blue-600 text-white p-2 rounded" onClick={()=>window.location.reload()}>Volver al inicio</button>
         </div>
+      )}
     </div>
-
-    <script>
-        // Contraseña de administrador
-        const ADMIN_PASSWORD = "admin123";
-
-        // Simulación de base de datos para el prototipo
-        const simulatedDB = {
-            sessions: {
-                "ABC123": {
-                    active: true,
-                    startTime: Date.now(),
-                    teams: {}
-                }
-            },
-            teams: {
-                "team1": { name: "Equipo A", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
-                "team2": { name: "Equipo B", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
-                "team3": { name: "Equipo C", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
-                "team4": { name: "Equipo D", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 },
-                "team5": { name: "Equipo E", score: 0, questionsAnswered: 0, correctAnswers: 0, members: 0 }
-            }
-        };
-
-        // Variables globales
-        let sessionCode = generateSessionCode();
-        let allTeamsFinished = false;
-        let gameActive = false;
-
-        // Generar un código de sesión aleatorio
-        function generateSessionCode() {
-            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            let code = "";
-            for (let i = 0; i < 6; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return code;
-        }
-
-        // Generar código QR
-        function generateQRCode(text) {
-            const qr = qrcode(0, 'M');
-            qr.addData(text);
-            qr.make();
-            return qr.createImgTag(5);
-        }
-
-        // Preguntas del juego
-        const questions = [
-            {
-                question: "¿Qué representa el valor p en un estudio sobre la eficacia de un nuevo antibiótico para tratar mastitis en vacas?",
-                options: [
-                    "La probabilidad de que el antibiótico sea efectivo",
-                    "La probabilidad de obtener los resultados observados (o más extremos) si el antibiótico no tiene efecto",
-                    "El porcentaje de vacas que se curaron con el antibiótico",
-                    "El nivel de significancia establecido por el investigador"
-                ],
-                correctIndex: 1,
-                explanation: "El valor p representa la probabilidad de obtener los resultados observados (o más extremos) si la hipótesis nula fuera cierta. En este caso, si el antibiótico realmente no tuviera efecto. Un valor p pequeño sugiere que es poco probable que los resultados se deban al azar.",
-                image: "https://cdn.abacus.ai/images/7738cc8a-108f-44e1-a8a0-81ec96bd8772.png"
-            },
-            {
-                question: "En un estudio sobre el efecto de un suplemento alimenticio en el peso de terneros, se obtuvo un valor p de 0.03. ¿Qué significa esto?",
-                options: [
-                    "El suplemento aumenta el peso en un 3%",
-                    "Hay un 3% de probabilidad de que el suplemento sea efectivo",
-                    "Hay un 3% de probabilidad de obtener estos resultados (o más extremos) si el suplemento no tiene efecto",
-                    "El 3% de los terneros respondieron al suplemento"
-                ],
-                correctIndex: 2,
-                explanation: "Un valor p de 0.03 significa que hay un 3% de probabilidad de obtener estos resultados (o más extremos) si la hipótesis nula fuera cierta (si el suplemento no tuviera efecto). Como es menor que el nivel de significancia típico de 0.05, generalmente se consideraría estadísticamente significativo.",
-                image: null
-            },
-            {
-                question: "¿Qué es el valor crítico en una prueba de hipótesis sobre la eficacia de una vacuna en cerdos?",
-                options: [
-                    "El número mínimo de cerdos que deben ser vacunados",
-                    "El valor que determina el límite entre rechazar o no rechazar la hipótesis nula",
-                    "El porcentaje mínimo de eficacia que debe tener la vacuna",
-                    "La dosis mínima efectiva de la vacuna"
-                ],
-                correctIndex: 1,
-                explanation: "El valor crítico es el punto de corte en la distribución de probabilidad que separa la región de rechazo de la región de no rechazo de la hipótesis nula. Si el estadístico de prueba es más extremo que el valor crítico, rechazamos la hipótesis nula.",
-                image: "https://cdn.abacus.ai/images/c2d4ed73-1b0c-4fc9-8878-b9941b16bf3b.png"
-            },
-            {
-                question: "En un estudio sobre dos métodos de inseminación artificial en bovinos, ¿qué significa un valor p = 0.08?",
-                options: [
-                    "Hay una diferencia significativa entre los dos métodos",
-                    "No hay una diferencia significativa entre los dos métodos (asumiendo α = 0.05)",
-                    "El método nuevo es 8% mejor que el método tradicional",
-                    "Hay un 8% de probabilidad de que ambos métodos sean iguales"
-                ],
-                correctIndex: 1,
-                explanation: "Un valor p de 0.08 es mayor que el nivel de significancia típico de 0.05, lo que significa que no rechazamos la hipótesis nula. Por lo tanto, no hay evidencia suficiente para afirmar que existe una diferencia significativa entre los dos métodos de inseminación.",
-                image: null
-            },
-            {
-                question: "¿Cuál de las siguientes afirmaciones sobre el valor p es INCORRECTA?",
-                options: [
-                    "Un valor p pequeño indica evidencia contra la hipótesis nula",
-                    "El valor p es la probabilidad de que la hipótesis nula sea verdadera",
-                    "El valor p se compara con el nivel de significancia (α) para tomar decisiones",
-                    "Un valor p = 0.01 proporciona mayor evidencia contra la hipótesis nula que un valor p = 0.05"
-                ],
-                correctIndex: 1,
-                explanation: "La afirmación incorrecta es que 'El valor p es la probabilidad de que la hipótesis nula sea verdadera'. El valor p NO indica la probabilidad de que la hipótesis nula sea verdadera o falsa. Es la probabilidad de obtener los resultados observados (o más extremos) si la hipótesis nula fuera cierta.",
-                image: null
-            },
-            {
-                question: "En un experimento sobre el efecto de un nuevo alimento en el peso de pollos, se obtuvo el siguiente resultado. ¿Qué conclusión es correcta?",
-                options: [
-                    "No hay diferencia significativa entre los dos alimentos",
-                    "El nuevo alimento produce un aumento significativo en el peso de los pollos",
-                    "El alimento tradicional es mejor que el nuevo",
-                    "No se puede determinar sin conocer el valor p"
-                ],
-                correctIndex: 1,
-                explanation: "La imagen muestra una diferencia estadísticamente significativa (indicada por el asterisco) entre el grupo control y el grupo con el nuevo alimento. El nuevo alimento produce un aumento significativo en el peso de los pollos.",
-                image: "https://cdn.abacus.ai/images/4f3a871a-7027-422d-bcf4-e0d9a1349caf.png"
-            },
-            {
-                question: "Si en un estudio sobre la eficacia de una vacuna contra la fiebre aftosa en bovinos se establece α = 0.01, ¿qué significa esto?",
-                options: [
-                    "La vacuna debe tener al menos 1% de eficacia",
-                    "Se acepta un 1% de probabilidad de concluir incorrectamente que la vacuna es efectiva cuando no lo es",
-                    "La vacuna debe funcionar en al menos el 99% de los animales",
-                    "El 1% de los animales no responderá a la vacuna"
-                ],
-                correctIndex: 1,
-                explanation: "El nivel de significancia (α) representa la probabilidad máxima que estamos dispuestos a aceptar de cometer un error Tipo I, es decir, rechazar incorrectamente la hipótesis nula cuando es verdadera. En este caso, estamos dispuestos a aceptar un 1% de probabilidad de concluir que la vacuna es efectiva cuando en realidad no lo es.",
-                image: null
-            },
-            {
-                question: "Observa la siguiente gráfica sobre el efecto de una vacuna en bovinos. ¿Qué conclusión es correcta?",
-                options: [
-                    "La vacuna no tiene efecto significativo",
-                    "La vacuna reduce significativamente la enfermedad",
-                    "La vacuna aumenta la enfermedad",
-                    "No se puede determinar el efecto sin más información"
-                ],
-                correctIndex: 1,
-                explanation: "La gráfica muestra una diferencia estadísticamente significativa (p < 0.001, indicado por ***) entre el grupo vacunado y el no vacunado. El porcentaje de animales enfermos es significativamente menor en el grupo vacunado, lo que indica que la vacuna reduce significativamente la enfermedad.",
-                image: "https://cdn.abacus.ai/images/80e9d2b8-9112-4bd2-aafc-683ea1a7bd5e.png"
-            },
-            {
-                question: "¿Cuándo se rechaza la hipótesis nula en un estudio sobre el efecto de un suplemento en la producción de leche?",
-                options: [
-                    "Cuando el valor p es mayor que el nivel de significancia",
-                    "Cuando el valor p es menor que el nivel de significancia",
-                    "Cuando el valor p es igual a 0.5",
-                    "Cuando el estadístico de prueba está dentro de la región de aceptación"
-                ],
-                correctIndex: 1,
-                explanation: "Se rechaza la hipótesis nula cuando el valor p es menor que el nivel de significancia (α) establecido. Esto indica que es poco probable que los resultados observados se deban al azar si la hipótesis nula fuera cierta.",
-                image: "https://cdn.abacus.ai/images/22d8cb1a-78ad-42de-8027-9d498ba6368a.png"
-            },
-            {
-                question: "En un estudio sobre dos razas de ganado, se obtuvo un valor p = 0.002 al comparar su ganancia diaria de peso. ¿Qué significa esto?",
-                options: [
-                    "Las razas son 0.2% diferentes en su ganancia de peso",
-                    "Hay un 0.2% de probabilidad de que las razas sean iguales",
-                    "Hay un 0.2% de probabilidad de obtener estos resultados (o más extremos) si no hubiera diferencia entre las razas",
-                    "La diferencia entre las razas es de 0.002 kg por día"
-                ],
-                correctIndex: 2,
-                explanation: "Un valor p de 0.002 significa que hay un 0.2% de probabilidad de obtener estos resultados (o más extremos) si la hipótesis nula fuera cierta (si no hubiera diferencia real entre las razas). Este valor p tan pequeño proporciona fuerte evidencia contra la hipótesis nula, sugiriendo que realmente existe una diferencia en la ganancia de peso entre las dos razas.",
-                image: null
-            }
-        ];
-
-        // Variables del juego
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let selectedOptionIndex = null;
-        let answeredQuestions = 0;
-        let currentTeam = null;
-
-        // Elementos del DOM
-        const loginContainer = document.getElementById('login-container');
-        const adminPanel = document.getElementById('admin-panel');
-        const teamSelection = document.getElementById('team-selection');
-        const gameContainer = document.getElementById('game-container');
-        const resultsContainer = document.getElementById('results-container');
-
-        const userTypeSelect = document.getElementById('user-type');
-        const adminLoginFields = document.getElementById('admin-login-fields');
-        const studentLoginFields = document.getElementById('student-login-fields');
-        const loginBtn = document.getElementById('login-btn');
-
-        const sessionIdElement = document.getElementById('session-id');
-        const qrcodeElement = document.getElementById('qrcode');
-        const printQrBtn = document.getElementById('print-qr-btn');
-        const startSessionBtn = document.getElementById('start-session-btn');
-        const pauseSessionBtn = document.getElementById('pause-session-btn');
-        const endSessionBtn = document.getElementById('end-session-btn');
-
-        const teamsListElement = document.getElementById('teams-list');
-        const studentTeamsGrid = document.getElementById('student-teams-grid');
-        const joinTeamBtn = document.getElementById('join-team-btn');
-
-        const teamsProgressElement = document.getElementById('teams-progress');
-        const leaderboardBody = document.getElementById('leaderboard-body');
-        const showFinalResultsBtn = document.getElementById('show-final-results-btn');
-
-        const currentTeamNameElement = document.getElementById('current-team-name');
-        const questionText = document.getElementById('question-text');
-        const questionImageContainer = document.getElementById('question-image-container');
-        const optionsContainer = document.getElementById('options-container');
-        const feedbackElement = document.getElementById('feedback');
-        const explanationElement = document.getElementById('explanation');
-        const checkButton = document.getElementById('check-btn');
-        const nextButton = document.getElementById('next-btn');
-        const resultElement = document.getElementById('result');
-        const progressBar = document.getElementById('progress');
-
-        const finalResultsElement = document.getElementById('final-results');
-        const newGameBtn = document.getElementById('new-game-btn');
-
-        // Cambiar entre tipos de usuario
-        userTypeSelect.addEventListener('change', function() {
-            if (this.value === 'admin') {
-                adminLoginFields.style.display = 'block';
-                studentLoginFields.style.display = 'none';
-            } else {
-                adminLoginFields.style.display = 'none';
-                studentLoginFields.style.display = 'block';
-            }
-        });
-
-        // Iniciar sesión
-        loginBtn.addEventListener('click', function() {
-            const userType = userTypeSelect.value;
-
-            if (userType === 'admin') {
-                const password = document.getElementById('admin-password').value;
-
-                if (password === ADMIN_PASSWORD) {
-                    loginContainer.classList.remove('active');
-                    adminPanel.classList.add('active');
-
-                    // Mostrar código de sesión y QR
-                    sessionIdElement.textContent = sessionCode;
-                    const gameUrl = window.location.href.split('?')[0] + '?session=' + sessionCode;
-                    qrcodeElement.innerHTML = generateQRCode(gameUrl);
-
-                    // Cargar equipos
-                    loadTeams();
-                    updateLeaderboard();
-                } else {
-                    alert('Contraseña incorrecta. Inténtelo de nuevo.');
-                }
-
-            } else {
-                const code = document.getElementById('session-code').value;
-
-                // En un sistema real, aquí se verificaría el código de sesión
-                // Para el prototipo, simplemente permitimos el acceso
-                loginContainer.classList.remove('active');
-                teamSelection.classList.add('active');
-
-                // Cargar equipos para selección
-                loadTeamsForSelection();
-            }
-        });
-
-        // Imprimir código QR
-        printQrBtn.addEventListener('click', function() {
-            window.print();
-        });
-
-        // Cambiar entre pestañas del panel de administrador
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', function() {
-                // Desactivar todas las pestañas
-                document.querySelectorAll('.tab-button').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                document.querySelectorAll('.tab-panel').forEach(panel => {
-                    panel.classList.remove('active');
-                });
-
-                // Activar la pestaña seleccionada
-                this.classList.add('active');
-                const tabId = this.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
-
-                // Actualizar contenido de la pestaña
-                if (tabId === 'progress-tab') {
-                    updateTeamsProgress();
-                } else if (tabId === 'results-tab') {
-                    updateLeaderboard();
-                }
-            });
-        });
-
-        // Unirse a un equipo
-        joinTeamBtn.addEventListener('click', function() {
-            teamSelection.classList.remove('active');
-            gameContainer.classList.add('active');
-
-            // Incrementar el contador de miembros del equipo
-            simulatedDB.teams[currentTeam].members++;
-
-            currentTeamNameElement.textContent = simulatedDB.teams[currentTeam].name;
-            startGame();
-        });
-
-        // Calcular promedio del equipo
-        function calculateTeamAverage(team) {
-            if (team.members === 0 || team.questionsAnswered === 0) return 0;
-
-            // Promedio de respuestas correctas por miembro
-            return (team.correctAnswers / team.members).toFixed(2);
-        }
-
-        // Cargar equipos para el panel de administrador
-        function loadTeams() {
-            teamsListElement.innerHTML = '';
-
-            for (const teamId in simulatedDB.teams) {
-                const team = simulatedDB.teams[teamId];
-                const average = calculateTeamAverage(team);
-
-                const teamCard = document.createElement('div');
-                teamCard.className = 'team-card';
-                teamCard.innerHTML = `
-                    <div class="team-name">${team.name}</div>
-                    <div class="team-stats">
-                        <div>Integrantes: ${team.members}</div>
-                        <div class="team-average">Promedio: ${average}</div>
-                    </div>
-                    <div class="team-score">Puntuación: ${team.score}</div>
-                `;
-
-                teamsListElement.appendChild(teamCard);
-            }
-        }
-
-        // Cargar equipos para selección de estudiantes
-        function loadTeamsForSelection() {
-            studentTeamsGrid.innerHTML = '';
-
-            for (const teamId in simulatedDB.teams) {
-                const team = simulatedDB.teams[teamId];
-
-                const teamCard = document.createElement('div');
-                teamCard.className = 'team-card';
-                teamCard.setAttribute('data-team-id', teamId);
-                teamCard.innerHTML = `
-                    <div class="team-name">${team.name}</div>
-                    <div>Integrantes: ${team.members}</div>
-                `;
-
-                teamCard.addEventListener('click', function() {
-                    // Desmarcar todos los equipos
-                    document.querySelectorAll('.team-card').forEach(card => {
-                        card.classList.remove('selected-team');
-                    });
-
-                    // Marcar el equipo seleccionado
-                    this.classList.add('selected-team');
-                    currentTeam = this.getAttribute('data-team-id');
-
-                    // Habilitar botón de unirse
-                    joinTeamBtn.disabled = false;
-                });
-
-                studentTeamsGrid.appendChild(teamCard);
-            }
-        }
-
-        // Actualizar progreso de los equipos
-        function updateTeamsProgress() {
-            teamsProgressElement.innerHTML = '';
-
-            for (const teamId in simulatedDB.teams) {
-                const team = simulatedDB.teams[teamId];
-                const progress = team.questionsAnswered / questions.length * 100;
-                const average = calculateTeamAverage(team);
-
-                const teamProgressElement = document.createElement('div');
-                teamProgressElement.className = 'team-progress';
-                teamProgressElement.innerHTML = `
-                    <div class="team-name">${team.name}</div>
-                    <div class="team-stats">
-                        <div>Integrantes: ${team.members}</div>
-                        <div class="team-average">Promedio: ${average}</div>
-                    </div>
-                    <div>Preguntas respondidas: ${team.questionsAnswered} de ${questions.length}</div>
-                    <div>Respuestas correctas: ${team.correctAnswers}</div>
-                    <div class="progress">
-                        <div class="progress-bar" style="width: ${progress}%"></div>
-                    </div>
-                `;
-
-                teamsProgressElement.appendChild(teamProgressElement);
-            }
-
-            // Verificar si todos los equipos han terminado
-            checkAllTeamsFinished();
-        }
-
-        // Verificar si todos los equipos han terminado
-        function checkAllTeamsFinished() {
-            if (allTeamsFinished) return;
-
-            let allFinished = true;
-            let activeTeams = 0;
-
-            for (const teamId in simulatedDB.teams) {
-                const team = simulatedDB.teams[teamId];
-                if (team.members > 0) {
-                    activeTeams++;
-                    if (team.questionsAnswered < questions.length) {
-                        allFinished = false;
-                    }
-                }
-            }
-
-            // Si no hay equipos activos, no hacemos nada
-            if (activeTeams === 0) return;
-
-            // Si todos los equipos activos han terminado, mostrar resultados
-            if (allFinished) {
-                allTeamsFinished = true;
-                showFinalResults();
-            }
-        }
-
-        // Actualizar tabla de clasificación
-        function updateLeaderboard() {
-            // Ordenar equipos por puntuación
-            const sortedTeams = Object.entries(simulatedDB.teams)
-                .map(([id, team]) => ({ id, ...team }))
-                .sort((a, b) => b.score - a.score);
-
-            leaderboardBody.innerHTML = '';
-
-            sortedTeams.forEach((team, index) => {
-                const average = calculateTeamAverage(team);
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${team.name}</td>
-                    <td>${team.members}</td>
-                    <td>${team.questionsAnswered}</td>
-                    <td>${team.correctAnswers}</td>
-                    <td>${average}</td>
-                    <td>${team.score}</td>
-                `;
-
-                leaderboardBody.appendChild(row);
-            });
-        }
-
-        // Iniciar el juego
-        function startGame() {
-            gameActive = true;
-            currentQuestionIndex = 0;
-            score = 0;
-            answeredQuestions = 0;
-            loadQuestion();
-        }
-
-        // Cargar pregunta actual
-        function loadQuestion() {
-            const currentQuestion = questions[currentQuestionIndex];
-
-            // Actualizar texto de la pregunta
-            questionText.textContent = currentQuestion.question;
-
-            // Limpiar opciones anteriores
-            optionsContainer.innerHTML = '';
-
-            // Cargar imagen si existe
-            if (currentQuestion.image) {
-                questionImageContainer.innerHTML = `<img src="${currentQuestion.image}" alt="Imagen de la pregunta">`;
-                questionImageContainer.style.display = 'block';
-            } else {
-                questionImageContainer.style.display = 'none';
-            }
-
-            // Crear opciones
-            currentQuestion.options.forEach((option, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'option';
-                optionElement.textContent = option;
-                optionElement.dataset.index = index;
-
-                optionElement.addEventListener('click', () => {
-                    // Desmarcar opción previamente seleccionada
-                    document.querySelectorAll('.option').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-
-                    // Marcar nueva opción seleccionada
-                    optionElement.classList.add('selected');
-                    selectedOptionIndex = index;
-
-                    // Habilitar botón de comprobar
-                    checkButton.disabled = false;
-                });
-
-                optionsContainer.appendChild(optionElement);
-            });
-
-            // Reiniciar estado
-            selectedOptionIndex = null;
-            feedbackElement.style.display = 'none';
-            explanationElement.style.display = 'none';
-            checkButton.disabled = true;
-            nextButton.disabled = true;
-
-            // Actualizar barra de progreso
-            updateProgressBar();
-        }
-
-        // Comprobar respuesta
-        function checkAnswer() {
-            const currentQuestion = questions[currentQuestionIndex];
-            const options = document.querySelectorAll('.option');
-
-            // Marcar respuesta correcta e incorrecta
-            options.forEach((option, index) => {
-                if (index === currentQuestion.correctIndex) {
-                    option.classList.add('correct');
-                } else if (index === selectedOptionIndex) {
-                    option.classList.add('incorrect');
-                }
-            });
-
-            // Mostrar retroalimentación
-            if (selectedOptionIndex === currentQuestion.correctIndex) {
-                feedbackElement.textContent = '¡Correcto! 👍';
-                feedbackElement.style.backgroundColor = '#2ecc71';
-                score++;
-
-                // Actualizar puntuación del equipo
-                if (currentTeam) {
-                    simulatedDB.teams[currentTeam].score += 10;
-                    simulatedDB.teams[currentTeam].correctAnswers++;
-                }
-            } else {
-                feedbackElement.textContent = '¡Incorrecto! La respuesta correcta está marcada en verde.';
-                feedbackElement.style.backgroundColor = '#e74c3c';
-            }
-
-            // Mostrar explicación
-            explanationElement.textContent = currentQuestion.explanation;
-
-            // Mostrar elementos
-            feedbackElement.style.display = 'block';
-            explanationElement.style.display = 'block';
-
-            // Actualizar botones
-            checkButton.disabled = true;
-            nextButton.disabled = false;
-
-            // Actualizar contador de preguntas respondidas
-            answeredQuestions++;
-
-            // Actualizar estadísticas del equipo
-            if (currentTeam) {
-                simulatedDB.teams[currentTeam].questionsAnswered++;
-
-                // En un sistema real, aquí se sincronizaría con Firebase
-                updateTeamsProgress();
-                updateLeaderboard();
-            }
-
-            // Verificar si es la última pregunta
-            if (currentQuestionIndex === questions.length - 1) {
-                nextButton.textContent = 'Ver Resultado';
-            }
-        }
-
-        // Pasar a la siguiente pregunta
-        function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                loadQuestion();
-            } else {
-                showResult();
-            }
-        }
-
-        // Mostrar resultado final
-        function showResult() {
-            const percentage = Math.round((score / questions.length) * 100);
-
-            // Ocultar contenedor de preguntas
-            document.getElementById('question-container').style.display = 'none';
-
-            // Mostrar resultado
-            resultElement.innerHTML = `
-                <h2>Resultado Final</h2>
-                <p>Tu equipo ha acertado ${score} de ${questions.length} preguntas (${percentage}%)</p>
-                <button id="exit-btn">Volver al Inicio</button>
-            `;
-
-            // Ocultar botones
-            document.querySelector('.buttons').style.display = 'none';
-
-            // Evento para salir
-            document.getElementById('exit-btn').addEventListener('click', () => {
-                gameContainer.classList.remove('active');
-                loginContainer.classList.add('active');
-
-                // Limpiar resultado
-                resultElement.innerHTML = '';
-
-                // Mostrar contenedor de preguntas para la próxima vez
-                document.getElementById('question-container').style.display = 'block';
-
-                // Mostrar botones para la próxima vez
-                document.querySelector('.buttons').style.display = 'block';
-
-                // Reiniciar botón de siguiente
-                nextButton.textContent = 'Siguiente';
-            });
-        }
-
-        // Actualizar barra de progreso
-        function updateProgressBar() {
-            const progress = ((currentQuestionIndex) / questions.length) * 100;
-            progressBar.style.width = `${progress}%`;
-        }
-
-        // Mostrar resultados finales
-        function showFinalResults() {
-            // Ordenar equipos por puntuación
-            const sortedTeams = Object.entries(simulatedDB.teams)
-                .filter(([_, team]) => team.members > 0) // Solo equipos con miembros
-                .map(([id, team]) => ({ id, ...team }))
-                .sort((a, b) => b.score - a.score);
-
-            finalResultsElement.innerHTML = '';
-
-            sortedTeams.forEach((team, index) => {
-                const positionClass = index === 0 ? 'first' : (index === 1 ? 'second' : (index === 2 ? 'third' : ''));
-                const average = calculateTeamAverage(team);
-
-                const teamResultCard = document.createElement('div');
-                teamResultCard.className = 'team-result-card';
-                teamResultCard.innerHTML = `
-                    <div class="team-position ${positionClass}">${index + 1}</div>
-                    <div class="team-result-name">${team.name}</div>
-                    <div class="team-result-details">
-                        <div>Integrantes: ${team.members}</div>
-                        <div>Preguntas: ${team.questionsAnswered}/${questions.length}</div>
-                        <div>Correctas: ${team.correctAnswers}</div>
-                        <div>Promedio: ${average}</div>
-                    </div>
-                    <div class="team-result-score">${team.score} pts</div>
-                `;
-
-                finalResultsElement.appendChild(teamResultCard);
-            });
-
-            // Mostrar pantalla de resultados
-            if (gameActive) {
-                hideAllScreens();
-                resultsContainer.classList.add('active');
-                createConfetti();
-            }
-        }
-
-        // Crear efecto de confeti
-        function createConfetti() {
-            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722'];
-
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + 'vw';
-                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.width = Math.random() * 10 + 5 + 'px';
-                confetti.style.height = Math.random() * 10 + 5 + 'px';
-                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
-                confetti.style.animationDelay = Math.random() * 5 + 's';
-
-                document.body.appendChild(confetti);
-
-                // Eliminar confeti después de la animación
-                setTimeout(() => {
-                    confetti.remove();
-                }, 8000);
-            }
-        }
-
-        // Ocultar todas las pantallas
-        function hideAllScreens() {
-            loginContainer.classList.remove('active');
-            adminPanel.classList.remove('active');
-            teamSelection.classList.remove('active');
-            gameContainer.classList.remove('active');
-            resultsContainer.classList.remove('active');
-        }
-
-        // Eventos de los botones del juego
-        checkButton.addEventListener('click', checkAnswer);
-        nextButton.addEventListener('click', nextQuestion);
-
-        // Eventos de los botones de sesión
-        startSessionBtn.addEventListener('click', function() {
-            gameActive = true;
-            alert('Sesión iniciada. Los estudiantes pueden unirse ahora.');
-        });
-
-        pauseSessionBtn.addEventListener('click', function() {
-            alert('Sesión pausada. Los estudiantes no podrán avanzar hasta que se reanude.');
-        });
-
-        endSessionBtn.addEventListener('click', function() {
-            if (confirm('¿Estás seguro de finalizar la sesión? Esto mostrará los resultados finales.')) {
-                gameActive = false;
-                showFinalResults();
-            }
-        });
-
-        // Mostrar resultados finales (botón en panel de administrador)
-        showFinalResultsBtn.addEventListener('click', function() {
-            if (confirm('¿Estás seguro de mostrar los resultados finales? Esto finalizará el juego para todos los equipos.')) {
-                gameActive = false;
-                showFinalResults();
-            }
-        });
-
-        // Nuevo juego
-        newGameBtn.addEventListener('click', function() {
-            // Reiniciar estadísticas de equipos
-            for (const teamId in simulatedDB.teams) {
-                simulatedDB.teams[teamId].score = 0;
-                simulatedDB.teams[teamId].questionsAnswered = 0;
-                simulatedDB.teams[teamId].correctAnswers = 0;
-            }
-
-            // Generar nuevo código de sesión
-            sessionCode = generateSessionCode();
-            sessionIdElement.textContent = sessionCode;
-            const gameUrl = window.location.href.split('?')[0] + '?session=' + sessionCode;
-            qrcodeElement.innerHTML = generateQRCode(gameUrl);
-
-            // Reiniciar variables
-            allTeamsFinished = false;
-            gameActive = true;
-
-            // Actualizar interfaz
-            loadTeams();
-            updateLeaderboard();
-            updateTeamsProgress();
-
-            // Volver al panel de administrador
-            hideAllScreens();
-            adminPanel.classList.add('active');
-        });
-
-        // Verificar si hay un código de sesión en la URL (para estudiantes que acceden por QR)
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionFromUrl = urlParams.get('session');
-
-        if (sessionFromUrl) {
-            userTypeSelect.value = 'student';
-            userTypeSelect.dispatchEvent(new Event('change'));
-            document.getElementById('session-code').value = sessionFromUrl;
-        }
-    </script>
-</body>
-</html>
+  );
+}
+
+// Animación de confeti
+function Confetti() {
+  useEffect(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = 200;
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = 9999;
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    let confetti = Array.from({length:100},()=>({x:Math.random()*canvas.width,y:Math.random()*-200,color:`hsl(${Math.random()*360},70%,60%)`,r:Math.random()*6+4,speed:Math.random()*2+1}));
+    let running = true;
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      confetti.forEach(c=>{
+        ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,2*Math.PI);ctx.fillStyle=c.color;ctx.fill();
+        c.y+=c.speed;
+        if(c.y>canvas.height) c.y=Math.random()*-20;
+      });
+      if(running) requestAnimationFrame(draw);
+    }
+    draw();
+    return ()=>{running=false;canvas.remove();};
+  },[]);
+  return null;
+}
