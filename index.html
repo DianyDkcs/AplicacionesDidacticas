@@ -1,5 +1,3 @@
-# Generar un archivo HTML con React, Tailwind y QRCode.js embebido
-html_code = '''
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,8 +6,13 @@ html_code = '''
   <title>Juego de Estadística Profesional</title>
   <!-- Tailwind CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <!-- Font Awesome for icons (optional) -->
+  <!-- Font Awesome for icons (opcional) -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-gray-100">
   <div id="root"></div>
@@ -18,13 +21,20 @@ html_code = '''
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
   <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- QRCode.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- App Code -->
   <script type="text/babel">
 
-// Juego de Estadística Profesional - Flujo Completo
-const { useState, useEffect, useRef } = React;
+// TODO: Pega aquí tu configuración de Firebase
+var firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_DOMINIO.firebaseapp.com",
+  databaseURL: "https://TU_DOMINIO.firebaseio.com",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_DOMINIO.appspot.com",
+  messagingSenderId: "XXXXXXXXXX",
+  appId: "TU_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
 
 // Utilidades
 function generateSessionCode() {
@@ -34,26 +44,12 @@ function generateSessionCode() {
   return code;
 }
 
-function getInitialData() {
-  const data = localStorage.getItem("estadisticaGameData");
-  if (data) return JSON.parse(data);
-  return {
-    sessions: {},
-    adminPassword: "admin123",
-    theme: "light"
-  };
-}
-
-function saveData(data) {
-  localStorage.setItem("estadisticaGameData", JSON.stringify(data));
-}
-
 const defaultTeams = [
-  { id: "A", name: "Equipo A", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
-  { id: "B", name: "Equipo B", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
-  { id: "C", name: "Equipo C", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
-  { id: "D", name: "Equipo D", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 },
-  { id: "E", name: "Equipo E", members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 }
+  { id: "A", name: "Equipo A" },
+  { id: "B", name: "Equipo B" },
+  { id: "C", name: "Equipo C" },
+  { id: "D", name: "Equipo D" },
+  { id: "E", name: "Equipo E" }
 ];
 
 const questions = [
@@ -103,9 +99,9 @@ const questions = [
   }
 ];
 
+const { useState, useEffect, useRef } = React;
+
 function App() {
-  const [data, setData] = useState(getInitialData());
-  const [theme, setTheme] = useState(data.theme || "light");
   const [view, setView] = useState("login");
   const [role, setRole] = useState("student");
   const [adminPass, setAdminPass] = useState("");
@@ -115,16 +111,27 @@ function App() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [studentSession, setStudentSession] = useState(null);
   const [confetti, setConfetti] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [newAdminPass, setNewAdminPass] = useState("");
-  const [copySuccess, setCopySuccess] = useState(false);
   const [nameError, setNameError] = useState(false);
+  const [teams, setTeams] = useState([]);
+  const [adminSession, setAdminSession] = useState(null);
+  const [studentSession, setStudentSession] = useState(null);
   const qrRef = useRef(null);
 
-  useEffect(() => { saveData(data); }, [data]);
-  useEffect(() => { document.body.style.background = theme === "dark" ? "#222" : "#f5f5f5"; }, [theme]);
+  // Cargar datos de la sesión en tiempo real
+  useEffect(() => {
+    if (sessionCode) {
+      const ref = db.ref('sessions/' + sessionCode);
+      ref.on('value', snapshot => {
+        const data = snapshot.val();
+        if (data) {
+          setTeams(data.teams || []);
+          setAdminSession(data);
+        }
+      });
+      return () => ref.off();
+    }
+  }, [sessionCode]);
 
   // QR dinámico
   useEffect(() => {
@@ -138,39 +145,35 @@ function App() {
     }
   }, [view, sessionCode]);
 
+  // Leer código de sesión de la URL
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
       const session = params.get('session');
       if (session) {
-        const sessionCode = session.toUpperCase();
-        setSessionCode(sessionCode);
+        setSessionCode(session.toUpperCase());
         setRole("student");
-        const sessionData = data.sessions[sessionCode];
-        if (sessionData) {
-          setView("student");
-        }
+        setView("student");
       }
-    } catch (e) {
-      console.error("Error al leer parámetros de URL:", e);
-    }
-  }, [data.sessions]);
+    } catch (e) {}
+  }, []);
 
   function handleLogin() {
     if (role === "admin") {
-      if (adminPass === data.adminPassword) {
+      if (adminPass === "admin123") {
         setView("admin");
-        setSessionCode(data.lastSession || "");
       } else {
         alert("Contraseña incorrecta");
       }
     } else {
       if (sessionCode.length === 6) {
-        if (data.sessions[sessionCode]) {
-          setView("student");
-        } else {
-          alert("Código de sesión no encontrado");
-        }
+        db.ref('sessions/' + sessionCode).once('value').then(snapshot => {
+          if (snapshot.exists()) {
+            setView("student");
+          } else {
+            alert("Código de sesión no encontrado");
+          }
+        });
       } else {
         alert("Código de sesión inválido");
       }
@@ -183,84 +186,20 @@ function App() {
       code,
       started: true,
       finished: false,
-      teams: JSON.parse(JSON.stringify(defaultTeams)),
-      leaderboard: [],
-      questions: questions.map(q => ({ ...q })),
+      teams: defaultTeams.map(t => ({ ...t, members: [], score: 0, questionsAnswered: 0, correctAnswers: 0 })),
+      questions,
       answers: {}
     };
-    setData(d => ({ ...d, sessions: { ...d.sessions, [code]: session }, lastSession: code }));
+    db.ref('sessions/' + code).set(session);
     setSessionCode(code);
+    setView("admin");
   }
 
   function handleEndSession() {
     if (!sessionCode) return;
-    setData(d => {
-      const s = { ...d.sessions[sessionCode], finished: true };
-      return { ...d, sessions: { ...d.sessions, [sessionCode]: s } };
-    });
+    db.ref('sessions/' + sessionCode + '/finished').set(true);
     setSessionCode("");
     setView("login");
-  }
-
-  function copySessionCode() {
-    if (!sessionCode) return;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(sessionCode)
-        .then(() => {
-          setCopySuccess(true);
-          setTimeout(() => setCopySuccess(false), 2000);
-        })
-        .catch(err => {
-          console.error('Error al copiar: ', err);
-          alert("No se pudo copiar el código. Cópialo manualmente: " + sessionCode);
-        });
-    } else {
-      const textArea = document.createElement("textarea");
-      textArea.value = sessionCode;
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-      } catch (err) {
-        console.error('Error al copiar: ', err);
-        alert("No se pudo copiar el código. Cópialo manualmente: " + sessionCode);
-      }
-      document.body.removeChild(textArea);
-    }
-  }
-
-  function copySessionLink() {
-    if (!sessionCode) return;
-    const fullLink = window.location.href.split('?')[0] + '?session=' + sessionCode;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(fullLink)
-        .then(() => {
-          setCopySuccess(true);
-          setTimeout(() => setCopySuccess(false), 2000);
-        })
-        .catch(err => {
-          console.error('Error al copiar: ', err);
-          alert("No se pudo copiar el enlace. Cópialo manualmente: " + fullLink);
-        });
-    } else {
-      const textArea = document.createElement("textarea");
-      textArea.value = fullLink;
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        setCopySuccess(true);
-        setTimeout(() => setCopySuccess(false), 2000);
-      } catch (err) {
-        console.error('Error al copiar: ', err);
-        alert("No se pudo copiar el enlace. Cópialo manualmente: " + fullLink);
-      }
-      document.body.removeChild(textArea);
-    }
   }
 
   function handleJoinTeam(teamId) {
@@ -269,61 +208,51 @@ function App() {
       return;
     }
     setNameError(false);
-    const session = data.sessions[sessionCode];
-    if (!session) return alert("Sesión no encontrada");
-    const teams = session.teams.map(t => {
-      if (t.id === teamId && !t.members.includes(studentName)) {
-        return { ...t, members: [...t.members, studentName] };
-      }
-      if (t.members.includes(studentName)) {
-        return { ...t, members: t.members.filter(n => n !== studentName) };
-      }
-      return t;
+    const ref = db.ref('sessions/' + sessionCode + '/teams');
+    ref.once('value').then(snapshot => {
+      const teams = snapshot.val() || [];
+      const updatedTeams = teams.map(t => {
+        if (t.id === teamId && (!t.members || !t.members.includes(studentName))) {
+          return { ...t, members: [...(t.members || []), studentName] };
+        }
+        if (t.members && t.members.includes(studentName)) {
+          return { ...t, members: t.members.filter(n => n !== studentName) };
+        }
+        return t;
+      });
+      ref.set(updatedTeams);
+      setSelectedTeam(teamId);
+      setStudentSession({ code: sessionCode, teamId, name: studentName, answers: [] });
+      setCurrentQuestion(0);
+      setView("game");
     });
-    setData(d => {
-      const s = { ...session, teams };
-      return { ...d, sessions: { ...d.sessions, [sessionCode]: s } };
-    });
-    setSelectedTeam(teamId);
-    setView("game");
-    setStudentSession({ code: sessionCode, teamId, name: studentName, answers: [] });
-    setCurrentQuestion(0);
   }
 
   function handleAnswer(optionIdx) {
     setSelectedOption(optionIdx);
     setShowExplanation(true);
-    setStudentSession(s => {
-      const answers = [...(s.answers || [])];
-      answers[currentQuestion] = optionIdx;
-      return { ...s, answers };
-    });
-    setData(d => {
-      const session = d.sessions[sessionCode];
-      const teams = session.teams.map(t => {
+    // Actualizar puntaje en Firebase
+    const ref = db.ref('sessions/' + sessionCode + '/teams');
+    ref.once('value').then(snapshot => {
+      const teams = snapshot.val() || [];
+      const updatedTeams = teams.map(t => {
         if (t.id === selectedTeam) {
-          let correct = t.correctAnswers;
-          let score = t.score;
+          let correct = t.correctAnswers || 0;
+          let score = t.score || 0;
           if (optionIdx === questions[currentQuestion].correctIndex) {
             correct++;
             score += 10;
           }
           return {
             ...t,
-            questionsAnswered: t.questionsAnswered + 1,
+            questionsAnswered: (t.questionsAnswered || 0) + 1,
             correctAnswers: correct,
             score
           };
         }
         return t;
       });
-      return {
-        ...d,
-        sessions: {
-          ...d.sessions,
-          [sessionCode]: { ...session, teams }
-        }
-      };
+      ref.set(updatedTeams);
     });
   }
 
@@ -338,27 +267,8 @@ function App() {
     }
   }
 
-  function handleSavePassword() {
-    if (newAdminPass.length < 4) return alert("Contraseña muy corta");
-    setData(d => ({ ...d, adminPassword: newAdminPass }));
-    setNewAdminPass("");
-    alert("Contraseña cambiada");
-  }
-
-  function handleThemeChange(e) {
-    setTheme(e.target.value);
-    setData(d => ({ ...d, theme: e.target.value }));
-  }
-
-  function handleResetData() {
-    if (window.confirm("¿Seguro que quieres borrar todos los datos?")) {
-      localStorage.removeItem("estadisticaGameData");
-      window.location.reload();
-    }
-  }
-
   return (
-    <div className={theme === "dark" ? "bg-gray-900 text-white min-h-screen" : "min-h-screen"}>
+    <div className="min-h-screen">
       <h1 className="text-2xl font-bold text-center my-4">Juego de Estadística</h1>
       {view === "login" && (
         <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
@@ -394,12 +304,6 @@ function App() {
                 <div className="text-sm text-gray-600">Código de sesión:</div>
                 <div className="font-mono text-lg font-bold">{sessionCode}</div>
               </div>
-              <button 
-                className={`px-3 py-1 rounded text-white ${copySuccess ? 'bg-green-600' : 'bg-blue-600'}`}
-                onClick={copySessionCode}
-              >
-                {copySuccess ? '¡Copiado!' : 'Copiar'}
-              </button>
             </div>
           ) : (
             <div className="mb-4">No hay sesión activa</div>
@@ -424,12 +328,6 @@ function App() {
                     <div className="font-mono bg-white p-1 text-xs break-all border rounded flex-grow mr-1">
                       {window.location.href.split('?')[0]}?session={sessionCode}
                     </div>
-                    <button 
-                      className="px-2 py-1 bg-blue-600 text-white text-xs rounded"
-                      onClick={copySessionLink}
-                    >
-                      Copiar
-                    </button>
                   </div>
                 </li>
                 <li>Los estudiantes deben ingresar como "Estudiante" y usar el código</li>
@@ -444,11 +342,11 @@ function App() {
           <div className="mt-4">
             <h3 className="font-bold">Equipos</h3>
             <div className="grid grid-cols-2 gap-2">
-              {(data.sessions[sessionCode]?.teams || defaultTeams).map(t => (
+              {(teams.length ? teams : defaultTeams).map(t => (
                 <div key={t.id} className="border rounded p-2">
                   <div className="font-bold">{t.name}</div>
-                  <div>Integrantes: {t.members.length}</div>
-                  <div>Puntos: {t.score}</div>
+                  <div>Integrantes: {t.members ? t.members.length : 0}</div>
+                  <div>Puntos: {t.score || 0}</div>
                 </div>
               ))}
             </div>
@@ -458,32 +356,13 @@ function App() {
             <table className="w-full text-sm">
               <thead><tr><th>Equipo</th><th>Puntos</th><th>Correctas</th></tr></thead>
               <tbody>
-                {(data.sessions[sessionCode]?.teams || defaultTeams)
-                  .slice().sort((a,b)=>b.score-a.score)
+                {(teams.length ? teams : defaultTeams)
+                  .slice().sort((a,b)=>(b.score||0)-(a.score||0))
                   .map(t => (
-                  <tr key={t.id}><td>{t.name}</td><td>{t.score}</td><td>{t.correctAnswers}</td></tr>
+                  <tr key={t.id}><td>{t.name}</td><td>{t.score||0}</td><td>{t.correctAnswers||0}</td></tr>
                 ))}
               </tbody>
             </table>
-          </div>
-          <div className="mt-4">
-            <button className="bg-gray-700 text-white p-2 rounded" onClick={()=>setShowSettings(s=>!s)}>Configuración</button>
-            {showSettings && (
-              <div className="mt-2 p-2 border rounded">
-                <div>
-                  <input type="password" placeholder="Nueva contraseña admin" value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} className="w-full p-2 border rounded" />
-                  <button className="bg-blue-600 text-white p-2 rounded mt-2" onClick={handleSavePassword}>Guardar contraseña</button>
-                </div>
-                <div className="mt-2">
-                  <label>Tema: </label>
-                  <select value={theme} onChange={handleThemeChange}>
-                    <option value="light">Claro</option>
-                    <option value="dark">Oscuro</option>
-                  </select>
-                </div>
-                <button className="bg-red-600 text-white p-2 rounded mt-2" onClick={handleResetData}>Reiniciar datos</button>
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -509,14 +388,14 @@ function App() {
           </div>
           <h3 className="font-bold mb-2">Selecciona tu equipo:</h3>
           <div className="grid grid-cols-2 gap-2">
-            {(data.sessions[sessionCode]?.teams || defaultTeams).map(t => (
+            {(teams.length ? teams : defaultTeams).map(t => (
               <button 
                 key={t.id} 
                 className={`border rounded p-3 ${selectedTeam===t.id ? "bg-blue-200 border-blue-500" : ""}`} 
                 onClick={()=>handleJoinTeam(t.id)}
               >
                 <div className="font-bold">{t.name}</div>
-                <div className="text-sm">{t.members.length} integrantes</div>
+                <div className="text-sm">{t.members ? t.members.length : 0} integrantes</div>
               </button>
             ))}
           </div>
@@ -551,7 +430,7 @@ function App() {
         <div className="max-w-lg mx-auto bg-white p-6 rounded shadow text-center">
           <h2 className="text-2xl font-bold mb-2">¡Juego finalizado!</h2>
           <div className="mb-2">Gracias por participar, <span className="font-bold">{studentName}</span> del <span className="font-bold">{defaultTeams.find(t=>t.id===selectedTeam)?.name}</span>.</div>
-          <div className="mb-2">Puntaje: <span className="font-bold">{data.sessions[sessionCode]?.teams.find(t=>t.id===selectedTeam)?.score || 0}</span></div>
+          <div className="mb-2">Puntaje: <span className="font-bold">{teams.find(t=>t.id===selectedTeam)?.score || 0}</span></div>
           {confetti && <Confetti />}
           <button className="mt-4 bg-blue-600 text-white p-2 rounded" onClick={()=>window.location.reload()}>Volver al inicio</button>
         </div>
@@ -593,9 +472,3 @@ ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
 </html>
-'''
-
-with open('index.html', 'w', encoding='utf-8') as f:
-    f.write(html_code)
-
-print('index.html generado')
