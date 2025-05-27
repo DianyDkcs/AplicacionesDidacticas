@@ -21,20 +21,23 @@
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
   <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    // Tu configuración de Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyBWXh6b3nm30dYz4CSB-s8BmO5jGF7g_xE",
+      authDomain: "juegoestadistica-e1093.firebaseapp.com",
+      databaseURL: "https://juegoestadistica-e1093-default-rtdb.firebaseio.com",
+      projectId: "juegoestadistica-e1093",
+      storageBucket: "juegoestadistica-e1093.firebasestorage.app",
+      messagingSenderId: "92481828540",
+      appId: "1:92481828540:web:c5b18ddb4ade427bc342b9",
+      measurementId: "G-89X3FER6K3"
+    };
+    // Inicializa Firebase
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
+  </script>
   <script type="text/babel">
-
-// TODO: Pega aquí tu configuración de Firebase
-var firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_DOMINIO.firebaseapp.com",
-  databaseURL: "https://TU_DOMINIO.firebaseio.com",
-  projectId: "TU_PROJECT_ID",
-  storageBucket: "TU_DOMINIO.appspot.com",
-  messagingSenderId: "XXXXXXXXXX",
-  appId: "TU_APP_ID"
-};
-firebase.initializeApp(firebaseConfig);
-var db = firebase.database();
 
 // Utilidades
 function generateSessionCode() {
